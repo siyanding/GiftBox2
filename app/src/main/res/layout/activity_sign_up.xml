@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <!-- padding 内边距   layout_margin 外边距
+  		android:layout_alignParentTop 布局的位置是否处于顶部 -->
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:padding="15dip"
+        android:layout_margin="15dip"
+        android:layout_height="wrap_content">
+        <!-- 账号 -->
+
+        <EditText
+            android:id="@+id/username_edit"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="username"
+            android:inputType="text"/>
+        <!-- 密码 text -->
+
+        <EditText
+            android:id="@+id/password_edit"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/username_edit"
+            android:hint="Password"
+            android:inputType="textPassword" />
+
+        <EditText
+            android:id="@+id/ConfirmPassword_edit"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/password_edit"
+            android:hint="ConfirmPassword"
+            android:inputType="textPassword" />
+
+        <EditText
+            android:id="@+id/email_edit"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ConfirmPassword_edit"
+            android:hint="Email"
+            android:inputType="textEmailAddress" />
+        <!-- 登录button -->
+
+        <Button
+            android:id="@+id/button_signUp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/email_edit"
+            android:layout_alignRight="@id/password_edit"
+            android:text="SignUp"
+            android:onClick="onClick_SignUpEvent"/>
+        <TextView
+            android:id="@+id/textViewSignUp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/button_signUp"
+            android:text=""
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    </RelativeLayout>
+
+
+</LinearLayout>

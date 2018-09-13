@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <!-- padding 内边距   layout_margin 外边距
+  		android:layout_alignParentTop 布局的位置是否处于顶部 -->
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:padding="15dip"
+        android:layout_margin="15dip"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/password_edit_Profile"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:inputType="textPassword" />
+
+        <EditText
+            android:id="@+id/ConfirmPassword_edit_Profile"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/password_edit_Profile"
+            android:hint="ConfirmPassword"
+            android:inputType="textPassword" />
+
+        <Button
+            android:id="@+id/button_save_Profile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/ConfirmPassword_edit_Profile"
+            android:layout_alignRight="@id/password_edit_Profile"
+            android:text="Save"
+            android:onClick="onClickEditProfileEvent"/>
+        <TextView
+            android:id="@+id/textView_Edit_Profile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/button_save_Profile"
+            android:text=""
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+    </RelativeLayout>
+
+
+</LinearLayout>
