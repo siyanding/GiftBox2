@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -25,6 +27,8 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -60,15 +64,17 @@ public class ContactActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, location -> {
-                    // Got last known location. In some rare situations this can be null.
-                    if (location != null) {
-                        // Logic to handle location object
-                        coordinate = location.getLongitude() + " " + location.getLatitude();
-                        System.out.println("point[0]" + coordinate);
-                    }
-                });
+        for(int i=0; i<5; i++){
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, location -> {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            // Logic to handle location object
+                            coordinate = location.getLongitude() + " " + location.getLatitude();
+                            System.out.println("point[0]" + coordinate);
+                        }
+                    });
+        }
 
         Intent intent = getIntent();
         username = intent.getStringExtra("username");
@@ -139,7 +145,7 @@ public class ContactActivity extends AppCompatActivity {
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         Uri uri;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            uri = FileProvider.getUriForFile(thisContext, BuildConfig.APPLICATION_ID + ".fileProvider", image);
+            uri = FileProvider.getUriForFile(thisContext, BuildConfig.APPLICATION_ID+".fileprovider", image);//BuildConfig.APPLICATION_ID + ".fileProvider"
         } else {
             uri = Uri.fromFile(image);
         }
@@ -205,8 +211,26 @@ public class ContactActivity extends AppCompatActivity {
 
         if (requestCode == 0 && result == RESULT_OK) {
             try {
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                Bitmap bitmap = BitmapFactory.decodeFile(image.getPath(), options);
+                int width = bitmap.getWidth();
+                int height = bitmap.getHeight();
+                int w = width >= height ? 800 : 600;
+                int h = width >= height ? 600 : 800;
+                bitmap = Bitmap.createScaledBitmap(bitmap, w, h, false);
+                try (FileOutputStream out = new FileOutputStream(image.getPath())) {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out); // bmp is your Bitmap instance
+                    // PNG is a lossless format, the compression factor (100) is ignored
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 bmobImage = new BmobFile(image);
-                uploadImage();
+                Intent intent = new Intent(ContactActivity.this, SelectActivity.class);
+                intent.putExtra("imagePath", image.getAbsolutePath());
+                intent.putExtra("username",username);
+                startActivity(intent);
+//                uploadImage();
             } catch (Exception e) {
                 e.printStackTrace();
             }

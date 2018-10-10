@@ -25,6 +25,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -58,18 +59,17 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
     private Button mButton;
     //当前处理状态
     private static int Cur_State = 0;
-    private static String imagePath = "http://bmob-cdn-17499.b0.upaiyun.com/2018/09/13/86e3310040ec156f801d6abe2d09d10b.png";
-    private String imageUrl;
-    static File region;
+    private static String imagePath;// = "http://bmob-cdn-17499.b0.upaiyun.com/2018/09/13/86e3310040ec156f801d6abe2d09d10b.png";
+//    private String imageUrl;
+//    static File region;
     static boolean imageReady = false;
     static Bitmap bitmap;
     protected static final int SUCCESS = 0;
     protected static final int ERROR = 1;
     protected static final int NETWORK_ERROR = 2;
 
+    private  boolean tag = false;
 
-
-    private int matchesPointCount = 0;
 
     //use Handle to update main thread(UI thread)
     private static Handler handler = new Handler(){
@@ -139,7 +139,8 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
 
         });
         Intent intent = getIntent();
-        imageUrl = intent.getStringExtra("imageUrl");
+        imagePath = intent.getStringExtra("imageUrl");
+        System.out.println("imageUrl:" + imagePath);
         getImage();
     }
 
@@ -176,7 +177,7 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
                     src.height() + "x" + src.width() + " <===> " + dst.height() + "x" + dst.width()
             );
 
-
+            Imgproc.resize(srcTrans,srcTrans,dst.size());
             MatOfKeyPoint keypoint1 = new MatOfKeyPoint();
             Imgproc.cvtColor(srcTrans, srcTrans, Imgproc.COLOR_RGBA2RGB);
             featureDetector.detect(srcTrans, keypoint1);
@@ -218,7 +219,7 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
             }
             List<DMatch> goodMatch = new LinkedList<>();
             for( int i = 0; i < descriptor1.rows(); i++ ){
-                if( mats.get(i).distance < 3*min_dist ){
+                if( mats.get(i).distance < .5 * (max_dist - min_dist) ) { //3*min_dist ){
                     goodMatch.add(mats.get(i));
                 }
             }
@@ -242,6 +243,8 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
             scnMatOfPoint2f.fromList(scenePoints);
             Mat homography = Calib3d.findHomography(objMatOfPoint2f, scnMatOfPoint2f, Calib3d.RANSAC, 3);
 
+            System.out.println("homographyW:" + homography.cols() + ", homographyH:" + homography.rows());
+
             Mat templateCorners = new Mat(4, 1, CvType.CV_32FC2);
             Mat templateTransformResult = new Mat(4, 1, CvType.CV_32FC2);
             templateCorners.put(0, 0, new double[]{0, 0});
@@ -256,42 +259,38 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
             double[] pointC = templateTransformResult.get(2, 0);
             double[] pointD = templateTransformResult.get(3, 0);
 
+            double clockWiseSum = (pointA[0] - pointB[0]) * (pointA[1] + pointB[1]) +
+                    (pointB[0] - pointC[0]) * (pointB[1] + pointC[1]) +
+                    (pointC[0] - pointD[0]) * (pointC[1] + pointD[1]) +
+                    (pointD[0] - pointA[0]) * (pointD[1] + pointA[1]);
+            System.out.println("clockWiseSum: " + clockWiseSum);
+
+//            MatOfPoint contour = iterator.next();
+            double areaTemplate = Imgproc.contourArea(templateCorners);
+            double areaTransform = Imgproc.contourArea(templateTransformResult);
+            if(2 * areaTemplate <= areaTransform || 0.5 * areaTemplate >= areaTransform){
+                System.out.println("area: false");
+            }else {
+                System.out.println("area: true");
+            }
+            tag = (clockWiseSum > 0) && (2 * areaTemplate > areaTransform) && (0.5 * areaTemplate < areaTransform);
+
+
+
 //            Imgproc.line(outImage,new Point(pointA[0]));
             Imgproc.line(outImage, new Point(pointA),new Point(pointB), new Scalar(0, 255, 0), 4);//上 A->B
             Imgproc.line(outImage, new Point(pointB),new Point(pointC), new Scalar(0, 255, 0), 4);//右 B->C
             Imgproc.line(outImage, new Point(pointC),new Point(pointD), new Scalar(0, 255, 0), 4);//下 C->D
             Imgproc.line(outImage, new Point(pointD),new Point(pointA), new Scalar(0, 255, 0), 4);//左 D->A
-//            Imgproc.line(outImage, new Point(pointA[0]+templateCorners.cols(),pointA[1]),
-//                    new Point(pointB[0]+templateCorners.cols(),pointB[1]), new Scalar(0, 255, 0), 4);//上 A->B
-//            Imgproc.line(outImage, new Point(pointB[0]+templateCorners.cols(),pointB[1]),
-//                    new Point(pointC[0]+templateCorners.cols(),pointC[1]), new Scalar(0, 255, 0), 4);//右 B->C
-//            Imgproc.line(outImage, new Point(pointC[0]+templateCorners.cols(),pointC[1]),
-//                    new Point(pointD[0]+templateCorners.cols(),pointD[1]), new Scalar(0, 255, 0), 4);//下 C->D
-//            Imgproc.line(outImage, new Point(pointD[0]+templateCorners.cols(),pointD[1]),
-//                    new Point(pointA[0]+templateCorners.cols(),pointA[1]), new Scalar(0, 255, 0), 4);//左 D->A
-            return outImage;
-//////
-//////            Collections.sort(mats, new Comparator<DMatch>() {
-//////                @Override
-//////                public int compare(DMatch mats1, DMatch mats2) {
-//////                    Float dist1 = mats1.distance;
-//////                    Float dist2 = mats2.distance;
-//////                    return dist1.compareTo(dist2);
-//////                }
-//////            });
-//////
-//////            goodMatch = mats.subList(0,(int) mats.size()/20);
-//////            matches.fromList(goodMatch);
-////
-////
 
-//            Mat outImage = new Mat();  src.copyTo(outImage);// new Mat( src.rows(), src.cols(), src.type() );
-//            Features2d.drawMatches(srcTrans, keypoint1, dst, keypoint2, matches, outImage);
-//            Imgproc.resize(outImage,outImage,src.size());
-//            return outImage;
+
+
+            return outImage;
         } catch (Exception e) {
             return null;
         }
+
+
     }
 
     /**
@@ -299,9 +298,12 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
      */
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        if( Cur_State  == 1 && imageReady ) {//if (Cur_State == 1){//
+        if( Cur_State  == 1 && imageReady ) {
+            if (tag){
+                Intent intent = new Intent(OpenCvCameraActivity.this, SuccussActivity.class);
+                startActivity(intent);
+            }
             return  compareKeypoints(inputFrame);
-//            return  srcCompareKeypoints(inputFrame);
         } else {
             return inputFrame.rgba();
         }

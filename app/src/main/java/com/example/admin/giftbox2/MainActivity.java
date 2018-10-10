@@ -84,8 +84,9 @@ public class MainActivity extends AppCompatActivity
         Intent intent = new Intent();
         switch (id){
             case  R.id.nav_gifts :
-                intent = new Intent(MainActivity.this, OpenCvCameraActivity.class);
-                intent.putExtra("imageUrl","http://bmob-cdn-17499.b0.upaiyun.com/2018/06/05/c9d88ff636744ed98fbf4c85ada65cd0.jpg");
+                intent = new Intent(MainActivity.this, GiftActivity.class);
+//                intent = new Intent(MainActivity.this, OpenCvCameraActivity.class);
+//                intent.putExtra("imageUrl","http://bmob-cdn-17499.b0.upaiyun.com/2018/09/13/86e3310040ec156f801d6abe2d09d10b.png");
 //                intent = new Intent(MainActivity.this, GiftActivity.class);
                 break;
             case R.id.nav_Edit_Profile :
