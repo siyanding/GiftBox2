@@ -1,5 +1,6 @@
 package com.example.admin.giftbox2;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,6 +11,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -28,6 +30,7 @@ import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
@@ -41,6 +44,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -55,20 +59,15 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
     CameraBridgeViewBase mCVCamera;
     private static final String TAG = "OpenCvCameraActivity";
     private Mat mRgba;
-    //按钮组件
-    private Button mButton;
-    //当前处理状态
     private static int Cur_State = 0;
-    private static String imagePath;// = "http://bmob-cdn-17499.b0.upaiyun.com/2018/09/13/86e3310040ec156f801d6abe2d09d10b.png";
-//    private String imageUrl;
-//    static File region;
     static boolean imageReady = false;
     static Bitmap bitmap;
     protected static final int SUCCESS = 0;
     protected static final int ERROR = 1;
     protected static final int NETWORK_ERROR = 2;
-
     private  boolean tag = false;
+    private Context thisContext;
+    private static double[] points = new double[8];
 
 
     //use Handle to update main thread(UI thread)
@@ -85,7 +84,20 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
                     } else {
                         imageReady = true;
                     }
+                    Mat dst = new Mat();
+                    Utils.bitmapToMat(bitmap, dst);
+//                    Point p1,p2,p3,p4;
+                    List<Double> xs = Arrays.asList( points[0], points[2], points[4], points[6] );
+                    List<Double> ys = Arrays.asList( points[1], points[3], points[5], points[7] );
+                    double minX = xs.stream().min( Comparator.naturalOrder() ).get();
+                    double minY = ys.stream().min( Comparator.naturalOrder()).get();
+                    double maxX = xs.stream().max( Comparator.naturalOrder()).get();
+                    double maxY = ys.stream().max( Comparator.naturalOrder()).get();
 
+                    Rect rectCrop = new Rect((int) minX, (int)minY , (int)(maxX-minX), (int)(maxY-minY));
+                    Mat image_output= dst.submat(rectCrop);
+                    Imgproc.resize(image_output,image_output,dst.size());
+                    Utils.matToBitmap(image_output,bitmap);
                     System.out.println("OpenCvCameraActivity: SUCCESS");
                     break;
                 case ERROR:
@@ -123,7 +135,10 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
         mCVCamera = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mCVCamera.setCvCameraViewListener(this);
 
-        mButton = (Button) findViewById(R.id.deal_btn);
+        ContextHolder.initial(this);
+        thisContext = ContextHolder.getContext();
+
+        Button mButton = (Button) findViewById(R.id.deal_btn);
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -139,9 +154,15 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
 
         });
         Intent intent = getIntent();
-        imagePath = intent.getStringExtra("imageUrl");
-        System.out.println("imageUrl:" + imagePath);
-        getImage();
+        String imagePath = intent.getStringExtra("imageUrl");
+        String [] pointStr = intent.getStringExtra("points").trim().split(" ");
+
+        for (int i=0; i<pointStr.length; i++){
+            System.out.println("pointsString:" + i + ":" + pointStr[i]);
+            points[i] = Double.parseDouble(pointStr[i]);
+        }
+//        System.out.println("pointsPoint:" + points.toString());
+        getImage(imagePath);
     }
 
 
@@ -246,7 +267,11 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
             System.out.println("homographyW:" + homography.cols() + ", homographyH:" + homography.rows());
 
             Mat templateCorners = new Mat(4, 1, CvType.CV_32FC2);
-            Mat templateTransformResult = new Mat(4, 1, CvType.CV_32FC2);
+            Mat templateTransformResult = new Mat(4, 1, CvType.CV_32FC2);//pointStr
+//            templateCorners.put(0, 0, new double[]{points[0], points[1]});
+//            templateCorners.put(1, 0, new double[]{points[2], points[3]});
+//            templateCorners.put(2, 0, new double[]{points[4], points[5]});
+//            templateCorners.put(3, 0, new double[]{points[6], points[7]});
             templateCorners.put(0, 0, new double[]{0, 0});
             templateCorners.put(1, 0, new double[]{dst.cols(), 0});
             templateCorners.put(2, 0, new double[]{dst.cols(), dst.rows()});
@@ -275,15 +300,11 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
             }
             tag = (clockWiseSum > 0) && (2 * areaTemplate > areaTransform) && (0.5 * areaTemplate < areaTransform);
 
-
-
 //            Imgproc.line(outImage,new Point(pointA[0]));
             Imgproc.line(outImage, new Point(pointA),new Point(pointB), new Scalar(0, 255, 0), 4);//上 A->B
             Imgproc.line(outImage, new Point(pointB),new Point(pointC), new Scalar(0, 255, 0), 4);//右 B->C
             Imgproc.line(outImage, new Point(pointC),new Point(pointD), new Scalar(0, 255, 0), 4);//下 C->D
             Imgproc.line(outImage, new Point(pointD),new Point(pointA), new Scalar(0, 255, 0), 4);//左 D->A
-
-
 
             return outImage;
         } catch (Exception e) {
@@ -299,9 +320,21 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         if( Cur_State  == 1 && imageReady ) {
+//            this.runOnUiThread(new Runnable() {
+//                public void run() {
+//                    final Toast toast = Toast.makeText(thisContext, "image ready!!!" , Toast.LENGTH_SHORT);
+//                    toast.show();
+//                }
+//            });
             if (tag){
-                Intent intent = new Intent(OpenCvCameraActivity.this, SuccussActivity.class);
-                startActivity(intent);
+                this.runOnUiThread(new Runnable() {
+                    public void run() {
+                        final Toast toast = Toast.makeText(thisContext, "find it!!!" , Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
+                });
+//                Intent intent = new Intent(OpenCvCameraActivity.this, SuccussActivity.class);
+//                startActivity(intent);
             }
             return  compareKeypoints(inputFrame);
         } else {
@@ -323,7 +356,7 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
     }
 
 
-    public static void getImage() {
+    public static void getImage(String imagePath) {
         new Thread() {
             public void run() {
                 try {

@@ -60,8 +60,8 @@ public class GiftActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gift);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the two
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -198,6 +198,7 @@ public class GiftActivity extends AppCompatActivity {
             }
             intent.putExtra("imageUrl",((GiftActivity)getActivity()).selectedGift.getBackground());
             intent.putExtra("coordinate",((GiftActivity)getActivity()).selectedGift.getCoordinate());
+            intent.putExtra("points",((GiftActivity)getActivity()).selectedGift.getPoints());
             System.out.println("imageUrl:"+ ((GiftActivity)getActivity()).selectedGift.getBackground());
             startActivity(intent);
         }

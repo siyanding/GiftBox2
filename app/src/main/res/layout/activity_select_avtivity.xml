@@ -1,16 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".SelectActivity">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView android:layout_width="wrap_content" android:layout_height="100dp"
+        android:id="@+id/layout2_imageAbove"
+        android:scaleType="matrix"
+        android:background="#778899"
+        />
+    <LinearLayout android:layout_width="fill_parent" android:layout_height="20dp"
+        android:background="@android:color/white">
+        <TextView android:layout_width="fill_parent" android:layout_height="fill_parent"
+            android:gravity="center"
+            android:background="@android:color/holo_purple"/>
+    </LinearLayout>
+    <FrameLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black">
+        <com.example.admin.giftbox2.BottomImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
 
+            android:background="@android:color/black"
+            android:id="@+id/layout2_bottomView"
+            android:layout_gravity="center_horizontal"
+            android:adjustViewBounds="true"
+            />
+        <com.example.admin.giftbox2.ChooseArea android:layout_width="fill_parent" android:layout_height="fill_parent"
+            android:id="@+id/layout2_topView"
+            android:adjustViewBounds="true"
+            android:layout_gravity="center_horizontal"
+            />
 
-
-    <ImageView
-        android:id="@+id/image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
+        <Button android:layout_width="50dp" android:layout_height="50dp"
+            android:id="@+id/check"
+            android:background="@drawable/ic_menu_check"
+            style="@style/SmsButton"
+            android:layout_gravity="bottom|center"
+            android:onClick="onClick_CheckEvent"
+        /> 
+    </FrameLayout>
 </LinearLayout>

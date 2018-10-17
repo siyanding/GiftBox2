@@ -6,18 +6,32 @@
     android:orientation="horizontal"
     tools:context=".ContactActivity">
 
-    <ImageView
-        android:layout_width="wrap_content"
+    <FrameLayout
+        android:id="@+id/item_contact"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/item_portrait"
-        android:scaleType="center"
-        android:src="@drawable/friends"/>
+        android:layout_marginTop="10dp"
+        android:gravity="center">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/item_user"
-        style="@style/textViewCell"
-        android:text="text12" />
+        <TextView
+            android:id="@+id/item_user"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:paddingLeft="55dp"
+            android:paddingTop="10dip"
+            android:paddingBottom="10dip"
+            android:text="Add Friends"
+            android:textSize="45px"
+            android:gravity="center_vertical"/>
+
+        <ImageView
+            android:id="@+id/item_portrait"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="left|center_vertical"
+            android:layout_marginStart="7dp"
+            android:background="@drawable/ic_contact_user" />
+
+    </FrameLayout>
 
 </LinearLayout>

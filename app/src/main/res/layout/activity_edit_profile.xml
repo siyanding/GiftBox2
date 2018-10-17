@@ -8,41 +8,115 @@
   		android:layout_alignParentTop 布局的位置是否处于顶部 -->
 
     <RelativeLayout
+        android:id="@+id/edit_layout"
         android:layout_width="fill_parent"
-        android:padding="15dip"
-        android:layout_margin="15dip"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:gravity="center">
 
-        <EditText
-            android:id="@+id/password_edit_Profile"
+        <FrameLayout
+            android:id="@+id/password_layout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:hint="Password"
-            android:inputType="textPassword" />
+            android:layout_below="@id/username_layout"
+            android:layout_marginTop="6dp"
+            android:gravity="center">
 
-        <EditText
-            android:id="@+id/ConfirmPassword_edit_Profile"
+            <EditText
+                android:id="@+id/password_edit_Profile"
+                android:layout_width="fill_parent"
+                android:layout_height="50dp"
+                android:inputType="textPassword"
+                android:hint="Password"
+                android:maxLength="20"
+                android:paddingLeft="55dp"
+                android:paddingRight="60dp"/>
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="22dp"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/ic_login_password" />
+
+            <Button
+                android:id="@+id/bt_pwd_eye"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_gravity="right|center_vertical"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/ic_login_eye"
+                android:onClick="onClick_PassVisible"/>
+
+            <Button
+                android:id="@+id/bt_pwd_clear"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_gravity="right|center_vertical"
+                android:layout_marginRight="33dp"
+                android:background="@drawable/ic_login_clear"
+                android:visibility="visible"
+                android:onClick="onClick_PassClear"/>
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/confirm_layout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/password_edit_Profile"
-            android:hint="ConfirmPassword"
-            android:inputType="textPassword" />
+            android:layout_below="@id/password_layout"
+            android:layout_marginTop="6dp"
+            android:gravity="center">
+
+            <EditText
+                android:id="@+id/ConfirmPassword_edit_Profile"
+                android:layout_width="fill_parent"
+                android:layout_height="50dp"
+                android:inputType="textPassword"
+                android:hint="ConfirmPassword"
+                android:maxLength="20"
+                android:paddingLeft="55dp"
+                android:paddingRight="60dp"/>
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="22dp"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/ic_login_password" />
+
+            <Button
+                android:id="@+id/bt_confirm_eye"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_gravity="right|center_vertical"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/ic_login_eye"
+                android:onClick="onClick_confirmVisible"/>
+
+            <Button
+                android:id="@+id/bt_confirm_clear"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_gravity="right|center_vertical"
+                android:layout_marginRight="33dp"
+                android:background="@drawable/ic_login_clear"
+                android:visibility="visible"
+                android:onClick="onClick_ConfirmClear"/>
+        </FrameLayout>
 
         <Button
             android:id="@+id/button_save_Profile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/ConfirmPassword_edit_Profile"
-            android:layout_alignRight="@id/password_edit_Profile"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:layout_below="@id/confirm_layout"
             android:text="Save"
-            android:onClick="onClickEditProfileEvent"/>
-        <TextView
-            android:id="@+id/textView_Edit_Profile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/button_save_Profile"
-            android:text=""
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:onClick="onClickEditProfileEvent"
+            android:layout_marginTop="30dp"
+            android:background="#ff336699"
+            android:gravity="center"
+            android:textColor="@android:color/white"/>
+
     </RelativeLayout>
 
 

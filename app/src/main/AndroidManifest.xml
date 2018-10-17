@@ -44,7 +44,8 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:launchMode="singleTop"/>
         <activity
             android:name=".SignInActivity"
             android:label="@string/title_activity_sign_in">
@@ -60,8 +61,9 @@
         <activity
             android:name=".GiftActivity"
             android:label="@string/title_activity_gift"
-            android:theme="@style/AppTheme.NoActionBar" />
+            />
         <activity android:name=".SearchActivity" />
+        <!--android:theme="@style/AppTheme.NoActionBar"-->
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").

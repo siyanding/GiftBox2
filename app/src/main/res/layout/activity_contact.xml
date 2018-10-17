@@ -6,27 +6,73 @@
     android:padding="10dp"
     tools:context=".ContactActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <FrameLayout
+        android:id="@+id/find_layout"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/menu_AddFriend"
-        style="@style/textViewCell"
-        android:text="Add Friends"
-        android:clickable="true"
-        android:focusable="true"
-        android:onClick="onClickAddFriendEvent"/>
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:gravity="center">
+
+        <EditText
+            android:id="@+id/search_contact"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:hint="Enter to search"
+            android:background="@drawable/round_edittext"
+            android:paddingLeft="55dp"
+            android:paddingTop="10dip"
+            android:paddingBottom="5dip"
+            android:inputType="text" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="22dp"
+            android:layout_gravity="left|center_vertical"
+            android:layout_marginStart="7dp"
+            android:background="@drawable/ic_contact_find" />
+    </FrameLayout>
 
     <View style="@style/list_item_seperator_layout"
         android:layout_height="1dp"/>
 
-    <EditText
-        android:id="@+id/search_contact"
+    <FrameLayout
+        android:id="@+id/add_layout"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter to search"
-        android:inputType="text" />
+        android:layout_marginTop="10dp"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/menu_AddFriend"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:paddingLeft="55dp"
+            android:paddingTop="10dip"
+            android:paddingBottom="10dip"
+            android:text="Add Friends"
+            android:textSize="35px"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="onClickAddFriendEvent"/>
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="22dp"
+            android:layout_gravity="left|center_vertical"
+            android:layout_marginStart="7dp"
+            android:background="@drawable/ic_contact_add" />
+    </FrameLayout>
 
 
+    <TextView
+        android:id="@+id/friends"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dip"
+        android:paddingBottom="10dip"
+        android:text="Friends"/>
 
     <ListView
         android:id="@android:id/list"

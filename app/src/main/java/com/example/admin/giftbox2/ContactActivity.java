@@ -229,6 +229,9 @@ public class ContactActivity extends AppCompatActivity {
                 Intent intent = new Intent(ContactActivity.this, SelectActivity.class);
                 intent.putExtra("imagePath", image.getAbsolutePath());
                 intent.putExtra("username",username);
+                intent.putExtra("coordinate",coordinate);
+                intent.putExtra("recipient",personOnClick.getFriend());
+
                 startActivity(intent);
 //                uploadImage();
             } catch (Exception e) {

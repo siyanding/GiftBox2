@@ -53,15 +53,15 @@ public class GiftAdapter extends BaseAdapter {
         Gift item = (Gift) getItem(position);
 
         ImageView imageView1 = (ImageView) v.findViewById(R.id.item_gift);
-        TextView tv2 = (TextView) v.findViewById(R.id.item_comment);
+//        TextView tv2 = (TextView) v.findViewById(R.id.item_comment);
         TextView tv3 = (TextView) v.findViewById(R.id.item_recipient);
         final CheckBox checkbox = (CheckBox) v.findViewById(R.id.item_check);
 
-        imageView1.setMaxWidth(displayMetrics.widthPixels/4);
-        tv2.setWidth(displayMetrics.widthPixels/4);
-        tv3.setWidth(displayMetrics.widthPixels/4);
-        checkbox.setWidth(displayMetrics.widthPixels/4);
-        tv2.setText(item.getComment());
+        imageView1.setMaxWidth(displayMetrics.widthPixels/3);
+//        tv2.setWidth(displayMetrics.widthPixels/4);
+        tv3.setWidth(displayMetrics.widthPixels/3);
+        checkbox.setWidth(displayMetrics.widthPixels/3);
+//        tv2.setText(item.getComment());
         tv3.setText(sectionNum == 1 ? item.getRecipient() : item.getUser());
         checkbox.setChecked(item.getStatus());
         checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
