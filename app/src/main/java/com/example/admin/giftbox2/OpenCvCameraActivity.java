@@ -24,7 +24,6 @@ import org.opencv.core.CvType;
 import org.opencv.core.DMatch;
 import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
@@ -36,19 +35,17 @@ import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.Features2d;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.File;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -61,7 +58,8 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
     private Mat mRgba;
     private static int Cur_State = 0;
     static boolean imageReady = false;
-    static Bitmap bitmap;
+    static Bitmap giftBitmap;
+    static Mat processedBitmap;
     protected static final int SUCCESS = 0;
     protected static final int ERROR = 1;
     protected static final int NETWORK_ERROR = 2;
@@ -75,17 +73,17 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case SUCCESS:
-                    System.out.println("bitmap download success");
-                    bitmap = (Bitmap) msg.obj;
-//                    imageView.setImageBitmap(bitmap);
+                    System.out.println("giftBitmap download success");
+                    giftBitmap = (Bitmap) msg.obj;
+//                    imageView.setImageBitmap(giftBitmap);
 //                    region = (File)msg.obj;
-                    if (bitmap.equals(null)) {
+                    if (giftBitmap.equals(null)) {
                         System.out.println("image is null");
                     } else {
                         imageReady = true;
                     }
-                    Mat dst = new Mat();
-                    Utils.bitmapToMat(bitmap, dst);
+//                    Mat dst = new Mat();
+//                    Utils.bitmapToMat(giftBitmap, dst);
 //                    Point p1,p2,p3,p4;
                     List<Double> xs = Arrays.asList( points[0], points[2], points[4], points[6] );
                     List<Double> ys = Arrays.asList( points[1], points[3], points[5], points[7] );
@@ -94,10 +92,10 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
                     double maxX = xs.stream().max( Comparator.naturalOrder()).get();
                     double maxY = ys.stream().max( Comparator.naturalOrder()).get();
 
-                    Rect rectCrop = new Rect((int) minX, (int)minY , (int)(maxX-minX), (int)(maxY-minY));
-                    Mat image_output= dst.submat(rectCrop);
-                    Imgproc.resize(image_output,image_output,dst.size());
-                    Utils.matToBitmap(image_output,bitmap);
+//                    Rect rectCrop = new Rect((int) minX, (int)minY , (int)(maxX-minX), (int)(maxY-minY));
+//                    Mat croppedGiftImageMat= dst.submat(rectCrop);
+//                    Imgproc.resize(croppedGiftImageMat,croppedGiftImageMat,dst.size());
+//                    Utils.matToBitmap(croppedGiftImageMat, giftBitmap);
                     System.out.println("OpenCvCameraActivity: SUCCESS");
                     break;
                 case ERROR:
@@ -131,7 +129,7 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_cv_camera);
-
+        processedBitmap = null;
         mCVCamera = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mCVCamera.setCvCameraViewListener(this);
 
@@ -143,11 +141,9 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
             @Override
             public void onClick(View v) {
                 if (Cur_State == 0) {
-                    //切换状态
                     Cur_State = 1;
                     System.out.println("Cur_State:" + Cur_State);
                 } else {
-                    //恢复初始状态
                     Cur_State = 0;
                 }
             }
@@ -161,7 +157,6 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
             System.out.println("pointsString:" + i + ":" + pointStr[i]);
             points[i] = Double.parseDouble(pointStr[i]);
         }
-//        System.out.println("pointsPoint:" + points.toString());
         getImage(imagePath);
     }
 
@@ -178,139 +173,225 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
 
     }
 
+    // src image is from camera.
+    // dst image is from server
+    private void preProcess( Mat camera, Mat processedCamera, Mat giftImage ) {
+        Core.rotate( camera, processedCamera, Core.ROTATE_90_CLOCKWISE );
+        Utils.bitmapToMat(giftBitmap, giftImage);
+        Imgproc.resize(processedCamera,processedCamera,giftImage.size());
+    }
+
     private Mat compareKeypoints(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         try {
-            Mat src = inputFrame.rgba();
-            Mat srcTrans = new Mat();
-            Core.rotate(src,srcTrans,Core.ROTATE_90_CLOCKWISE);
-//            Imgproc.resize(src,src,src.size());
-            Mat dst = new Mat();
-            bitmap = Bitmap.createScaledBitmap(bitmap, src.rows(), src.cols(), false);
-            Utils.bitmapToMat(bitmap, dst);
+            Mat camera = inputFrame.rgba();
+            Mat processedCamera = new Mat();
+            Mat giftImage = new Mat();
+
+            preProcess( camera, processedCamera, giftImage );
 
             FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.AKAZE);
+            MatOfKeyPoint cameraKeypoints = new MatOfKeyPoint();
+            Imgproc.cvtColor(processedCamera, processedCamera, Imgproc.COLOR_RGBA2RGB);
+            featureDetector.detect(processedCamera, cameraKeypoints);
 
-            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
-            System.out.println(
-                    src.height() + "x" + src.width() + " <===> " + dst.height() + "x" + dst.width()
-            );
-
-            Imgproc.resize(srcTrans,srcTrans,dst.size());
-            MatOfKeyPoint keypoint1 = new MatOfKeyPoint();
-            Imgproc.cvtColor(srcTrans, srcTrans, Imgproc.COLOR_RGBA2RGB);
-            featureDetector.detect(srcTrans, keypoint1);
-
-            MatOfKeyPoint keypoint2 = new MatOfKeyPoint();
-            Imgproc.cvtColor(dst, dst, Imgproc.COLOR_RGBA2RGB);
-            featureDetector.detect(dst, keypoint2);
+            MatOfKeyPoint giftKeypoints = new MatOfKeyPoint();
+            Imgproc.cvtColor(giftImage, giftImage, Imgproc.COLOR_RGBA2RGB);
+            featureDetector.detect(giftImage, giftKeypoints);
 
             DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.AKAZE);
+            Mat cameraDescriptor = new Mat();
+            extractor.compute(processedCamera, cameraKeypoints, cameraDescriptor);
+            Features2d.drawKeypoints(processedCamera, cameraKeypoints, processedCamera);
 
-            Mat descriptor1 = new Mat();
-            extractor.compute(srcTrans, keypoint1, descriptor1);
-            Features2d.drawKeypoints(srcTrans, keypoint1, srcTrans);
-//            Imgproc.cvtColor(src, src, Imgproc.COLOR_RGB2RGBA);
+            Mat giftDescriptor = new Mat();
+            extractor.compute(giftImage, giftKeypoints, giftDescriptor);
+            Features2d.drawKeypoints(giftImage, giftKeypoints, giftImage);
 
-            Mat descriptor2 = new Mat();
-            extractor.compute(dst, keypoint2, descriptor2);
-            Features2d.drawKeypoints(dst, keypoint2, dst);
-//            Imgproc.cvtColor(dst, dst, Imgproc.COLOR_RGB2RGBA);
-//--------------------------------------------------------------------
             MatOfDMatch matches = new MatOfDMatch();
-//            List<MatOfDMatch> matches = new LinkedList();
-// ----------------------------------------------------------------
             DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+            matcher.match(cameraDescriptor, giftDescriptor, matches);
 
-//            List<MatOfDMatch> matchesTest = new ArrayList<>();
-            matcher.match(descriptor1, descriptor2, matches);
-//            matcher.knnMatch(descriptor1, descriptor2, matches, 2);
-
-//---------------------------------------------------------------------------------------
-            List<DMatch> mats = matches.toList();//.toArray()
+            List<DMatch> mats = matches.toList();
             double max_dist = 0; double min_dist = 100;
 
-            //-- Quick calculation of max and min distances between keypoints
-            for( int i = 0; i < descriptor1.rows(); i++ ){
-                double dist = mats.get(i).distance;
-                if( dist < min_dist ) min_dist = dist;
-                if( dist > max_dist ) max_dist = dist;
-            }
-            List<DMatch> goodMatch = new LinkedList<>();
-            for( int i = 0; i < descriptor1.rows(); i++ ){
-                if( mats.get(i).distance < .5 * (max_dist - min_dist) ) { //3*min_dist ){
-                    goodMatch.add(mats.get(i));
+            max_dist = mats.stream().mapToDouble( (match) -> match.distance ).max().orElse( 0 );
+            min_dist = mats.stream().mapToDouble( (match) -> match.distance ).min().orElse( 0 );
+            double range = max_dist - min_dist;
+            final double MIN_DIST = min_dist;
+            List<DMatch> bestMatchesList = mats.stream().filter( m -> (m.distance - MIN_DIST) < .5 * range)
+                    .collect(Collectors.toList());
+
+            MatOfDMatch bestMatchesMat = new MatOfDMatch();
+            bestMatchesMat.fromList(bestMatchesList);
+
+            Mat outImage = new Mat();
+            Features2d.drawMatches(processedCamera, cameraKeypoints, giftImage, giftKeypoints, bestMatchesMat, outImage);
+            Imgproc.resize(outImage,outImage,camera.size());
+
+            if (bestMatchesList.size() > 4){
+                Mat[] corners = findHomography(giftKeypoints, cameraKeypoints, bestMatchesList, giftImage);
+                Mat templateTransformResult = new Mat();
+                Mat templateCorners = new Mat();
+                if (corners[0] != null && corners[1] != null ) {
+                    templateTransformResult = corners[0];
+                    templateCorners = corners[1];
+                    templateTransformResult.get(0,1);
+
+                    double threshold = caculateThreshold(giftKeypoints, cameraKeypoints,
+                            templateTransformResult,templateCorners, bestMatchesList);
+                    findObject(templateTransformResult, templateCorners, outImage, threshold, processedCamera);
                 }
             }
-            MatOfDMatch gm = new MatOfDMatch();
-            gm.fromList(goodMatch);
-            Mat outImage = new Mat();  src.copyTo(outImage);// new Mat( src.rows(), src.cols(), src.type() );
-            Features2d.drawMatches(srcTrans, keypoint1, dst, keypoint2, gm, outImage);
-            Imgproc.resize(outImage,outImage,src.size());
-
-            List<KeyPoint> templateKeyPointList = keypoint2.toList();
-            List<KeyPoint> originalKeyPointList = keypoint1.toList();
-            LinkedList<Point> objectPoints = new LinkedList();
-            LinkedList<Point> scenePoints = new LinkedList();
-            for(int i=0; i<goodMatch.size(); i++){
-                objectPoints.addLast(templateKeyPointList.get(goodMatch.get(i).trainIdx).pt);
-                scenePoints.addLast(originalKeyPointList.get(goodMatch.get(i).queryIdx).pt);
-            }
-            MatOfPoint2f objMatOfPoint2f = new MatOfPoint2f();
-            objMatOfPoint2f.fromList(objectPoints);
-            MatOfPoint2f scnMatOfPoint2f = new MatOfPoint2f();
-            scnMatOfPoint2f.fromList(scenePoints);
-            Mat homography = Calib3d.findHomography(objMatOfPoint2f, scnMatOfPoint2f, Calib3d.RANSAC, 3);
-
-            System.out.println("homographyW:" + homography.cols() + ", homographyH:" + homography.rows());
-
-            Mat templateCorners = new Mat(4, 1, CvType.CV_32FC2);
-            Mat templateTransformResult = new Mat(4, 1, CvType.CV_32FC2);//pointStr
-//            templateCorners.put(0, 0, new double[]{points[0], points[1]});
-//            templateCorners.put(1, 0, new double[]{points[2], points[3]});
-//            templateCorners.put(2, 0, new double[]{points[4], points[5]});
-//            templateCorners.put(3, 0, new double[]{points[6], points[7]});
-            templateCorners.put(0, 0, new double[]{0, 0});
-            templateCorners.put(1, 0, new double[]{dst.cols(), 0});
-            templateCorners.put(2, 0, new double[]{dst.cols(), dst.rows()});
-            templateCorners.put(3, 0, new double[]{0, dst.rows()});
-            //使用 perspectiveTransform 将模板图进行透视变以矫正图象得到标准图片
-            Core.perspectiveTransform(templateCorners, templateTransformResult, homography);
-
-            double[] pointA = templateTransformResult.get(0, 0);
-            double[] pointB = templateTransformResult.get(1, 0);
-            double[] pointC = templateTransformResult.get(2, 0);
-            double[] pointD = templateTransformResult.get(3, 0);
-
-            double clockWiseSum = (pointA[0] - pointB[0]) * (pointA[1] + pointB[1]) +
-                    (pointB[0] - pointC[0]) * (pointB[1] + pointC[1]) +
-                    (pointC[0] - pointD[0]) * (pointC[1] + pointD[1]) +
-                    (pointD[0] - pointA[0]) * (pointD[1] + pointA[1]);
-            System.out.println("clockWiseSum: " + clockWiseSum);
-
-//            MatOfPoint contour = iterator.next();
-            double areaTemplate = Imgproc.contourArea(templateCorners);
-            double areaTransform = Imgproc.contourArea(templateTransformResult);
-            if(2 * areaTemplate <= areaTransform || 0.5 * areaTemplate >= areaTransform){
-                System.out.println("area: false");
-            }else {
-                System.out.println("area: true");
-            }
-            tag = (clockWiseSum > 0) && (2 * areaTemplate > areaTransform) && (0.5 * areaTemplate < areaTransform);
-
-//            Imgproc.line(outImage,new Point(pointA[0]));
-            Imgproc.line(outImage, new Point(pointA),new Point(pointB), new Scalar(0, 255, 0), 4);//上 A->B
-            Imgproc.line(outImage, new Point(pointB),new Point(pointC), new Scalar(0, 255, 0), 4);//右 B->C
-            Imgproc.line(outImage, new Point(pointC),new Point(pointD), new Scalar(0, 255, 0), 4);//下 C->D
-            Imgproc.line(outImage, new Point(pointD),new Point(pointA), new Scalar(0, 255, 0), 4);//左 D->A
-
             return outImage;
         } catch (Exception e) {
+            System.out.println("Exception:" + e.toString());
             return null;
         }
+    }
 
+    private double caculateThreshold(MatOfKeyPoint giftKeypoints, MatOfKeyPoint cameraKeypoints,
+                                     Mat templateTransformResult, Mat templateCorners, List<DMatch> bestMatchesList) {
+        List<KeyPoint> cameraKeypointsList = cameraKeypoints.toList();
+        List<KeyPoint> giftKeypointsList = giftKeypoints.toList();
+
+        Mat giftMat = new Mat();
+        templateCorners.copyTo(giftMat);
+        giftMat.convertTo(giftMat, CvType.CV_32S);
+
+        Mat cameraMat = new Mat();
+        templateTransformResult.copyTo(cameraMat);
+        cameraMat.convertTo(cameraMat, CvType.CV_32S);
+
+        MatOfPoint giftMatPoints = new MatOfPoint(giftMat);
+        MatOfPoint cameraMatPoints = new MatOfPoint(cameraMat);
+        LinkedList<Point> giftPoints = new LinkedList();
+        LinkedList<Point> cameraPoints = new LinkedList();
+        for(int i=0; i<bestMatchesList.size(); i++){
+            giftPoints.addLast(giftKeypointsList.get(bestMatchesList.get(i).trainIdx).pt);
+            cameraPoints.addLast(cameraKeypointsList.get(bestMatchesList.get(i).queryIdx).pt);
+        }
+        int k = 0;
+        int kPrime = 0;
+        for (int i=0; i< giftPoints.size(); i++){
+            double insideCamera = Imgproc.pointPolygonTest(new MatOfPoint2f(cameraMatPoints.toArray()),cameraPoints.get(i),false);
+            double insideGift = Imgproc.pointPolygonTest(new MatOfPoint2f(giftMatPoints.toArray()),giftPoints.get(i),false);
+            System.out.println("insideCamera:" + insideCamera + ", insideGift:" + insideGift);
+            if (insideCamera > 0){
+                k++;
+                if (insideGift < 0){
+                    kPrime++;
+                }
+            }
+        }
+        double threshold = kPrime/k;
+        return  threshold;
+    }
+
+    private Mat[] findHomography(MatOfKeyPoint giftKeypoints, MatOfKeyPoint cameraKeypoints, List<DMatch> bestMatchesList, Mat giftImage){
+        List<KeyPoint> templateKeyPointList = giftKeypoints.toList();
+        List<KeyPoint> originalKeyPointList = cameraKeypoints.toList();
+        LinkedList<Point> objectPoints = new LinkedList();
+        LinkedList<Point> scenePoints = new LinkedList();
+        for(int i=0; i<bestMatchesList.size(); i++){
+            objectPoints.addLast(templateKeyPointList.get(bestMatchesList.get(i).trainIdx).pt);
+            scenePoints.addLast(originalKeyPointList.get(bestMatchesList.get(i).queryIdx).pt);
+        }
+        MatOfPoint2f objMatOfPoint2f = new MatOfPoint2f();
+        objMatOfPoint2f.fromList(objectPoints);
+        MatOfPoint2f scnMatOfPoint2f = new MatOfPoint2f();
+        scnMatOfPoint2f.fromList(scenePoints);
+        Mat homography = Calib3d.findHomography(objMatOfPoint2f, scnMatOfPoint2f, Calib3d.RANSAC, 3);
+
+        Mat[] corners = new Mat[2];
+        if (!homography.empty()){
+            Mat templateCorners = new Mat(4, 1, CvType.CV_32FC2);
+            Mat templateTransformResult = new Mat(4, 1, CvType.CV_32FC2);//CvType.CV_32FC2
+            templateCorners.put(0, 0, new double[]{points[0], points[1]});
+            templateCorners.put(1, 0, new double[]{points[2], points[3]});
+            templateCorners.put(2, 0, new double[]{points[4], points[5]});
+            templateCorners.put(3, 0, new double[]{points[6], points[7]});
+//            templateCorners.put(0, 0, new double[]{0, 0});
+//            templateCorners.put(1, 0, new double[]{giftImage.cols(), 0});
+//            templateCorners.put(2, 0, new double[]{giftImage.cols(), giftImage.rows()});
+//            templateCorners.put(3, 0, new double[]{0, giftImage.rows()});
+            //使用 perspectiveTransform 将模板图进行透视变以矫正图象得到标准图片
+            Core.perspectiveTransform(templateCorners, templateTransformResult, homography);
+            corners[0] = templateTransformResult;
+            corners[1] = templateCorners;
+        }
+        return corners;
+    }
+
+    /**
+     * @param templateTransformResult
+     * @param templateCorners
+     * @param outImage
+     * @param treshold
+     * @param processedCamera
+     */
+    public void findObject(Mat templateTransformResult, Mat templateCorners, Mat outImage,
+                           double treshold, Mat processedCamera){
+
+        double[] pointA = templateTransformResult.get(0, 0);
+        double[] pointB = templateTransformResult.get(1, 0);
+        double[] pointC = templateTransformResult.get(2, 0);
+        double[] pointD = templateTransformResult.get(3, 0);
+
+        boolean outOfCamera = pointA[0] > 0 && pointA[0] < processedCamera.cols()
+                && pointB[0] > 0 && pointB[0] < processedCamera.cols()
+                && pointC[0] > 0 && pointC[0] < processedCamera.cols()
+                && pointD[0] > 0 && pointD[0] < processedCamera.cols()
+                && pointA[1] > 0 && pointA[1] <processedCamera.rows()
+                && pointB[1] > 0 && pointB[1] <processedCamera.rows()
+                && pointC[1] > 0 && pointC[1] <processedCamera.rows()
+                && pointD[1] > 0 && pointD[1] <processedCamera.rows();
+
+        List<Double> giftXs = Arrays.asList( points[0], points[2], points[4], points[6] );
+        List<Double> giftYs = Arrays.asList( points[1], points[3], points[5], points[7] );
+        double giftMinX = giftXs.stream().min( Comparator.naturalOrder() ).get();
+        double giftMinY = giftYs.stream().min( Comparator.naturalOrder()).get();
+        double giftMaxX = giftXs.stream().max( Comparator.naturalOrder()).get();
+        double giftMaxY = giftYs.stream().max( Comparator.naturalOrder()).get();
+        double giftW = Math.abs(giftMinX-giftMaxX) > Math.abs(giftMinY-giftMaxY) ? Math.abs(giftMinX-giftMaxX) : Math.abs(giftMinY-giftMaxY);//big
+        double giftH = Math.abs(giftMinX-giftMaxX) > Math.abs(giftMinY-giftMaxY) ? Math.abs(giftMinY-giftMaxY) : Math.abs(giftMinX-giftMaxX) ;//small
+        double giftRatio = giftW/ giftH;
+
+        List<Double> cameraXs = Arrays.asList( points[0], points[2], points[4], points[6] );
+        List<Double> cameraYs = Arrays.asList( points[1], points[3], points[5], points[7] );
+        double cameraMinX = cameraXs.stream().min( Comparator.naturalOrder() ).get();
+        double cameraMinY = cameraYs.stream().min( Comparator.naturalOrder()).get();
+        double cameraMaxX = cameraXs.stream().max( Comparator.naturalOrder()).get();
+        double cameraMaxY = cameraYs.stream().max( Comparator.naturalOrder()).get();
+        double cameraW = Math.abs(cameraMinX-cameraMaxX) > Math.abs(cameraMinY-cameraMaxY) ? Math.abs(cameraMinX-cameraMaxX) : Math.abs(cameraMinY-cameraMaxY);//big
+        double cameraH = Math.abs(cameraMinX-cameraMaxX) > Math.abs(cameraMinY-cameraMaxY) ? Math.abs(cameraMinY-cameraMaxY) : Math.abs(cameraMinX-cameraMaxX) ;//small
+        double cameraRatio = cameraW/ cameraH;
+
+        boolean radio = cameraRatio < 2 * giftRatio && cameraRatio > .5 * cameraRatio;
+
+
+        double clockWiseSum = (pointA[0] - pointB[0]) * (pointA[1] + pointB[1]) +
+                (pointB[0] - pointC[0]) * (pointB[1] + pointC[1]) +
+                (pointC[0] - pointD[0]) * (pointC[1] + pointD[1]) +
+                (pointD[0] - pointA[0]) * (pointD[1] + pointA[1]);
+
+        System.out.println("threshold:" + treshold);
+        tag = (clockWiseSum > 0) && treshold < .3 && outOfCamera && radio;//(2 * areaTemplate > areaTransform) && (0.5 * areaTemplate < areaTransform);
+
+        int red = tag ? 255 : 0;
+        int green = tag ? 0 : 255;
+        Imgproc.line(outImage, new Point(pointA),new Point(pointB), new Scalar(red, green, 0), 4);//上 A->B
+        Imgproc.line(outImage, new Point(pointB),new Point(pointC), new Scalar(red, green, 0), 4);//右 B->C
+        Imgproc.line(outImage, new Point(pointC),new Point(pointD), new Scalar(red, green, 0), 4);//下 C->D
+        Imgproc.line(outImage, new Point(pointD),new Point(pointA), new Scalar(red, green, 0), 4);//左 D->A
+
+        Point pointAA = new Point(new double[]{points[0] + processedCamera.cols(), points[1]});
+        Point pointBB = new Point(new double[]{points[2] + processedCamera.cols(), points[3]});
+        Point pointCC = new Point(new double[]{points[4] + processedCamera.cols(), points[5]});
+        Point pointDD = new Point(new double[]{points[6] + processedCamera.cols(), points[7]});
+        Imgproc.line(outImage, pointAA,pointBB, new Scalar(255, 255, 0), 4);//上 A->B
+        Imgproc.line(outImage, pointBB,pointCC, new Scalar(255, 255, 0), 4);//右 B->C
+        Imgproc.line(outImage, pointCC,pointDD, new Scalar(255, 255, 0), 4);//下 C->D
+        Imgproc.line(outImage, pointDD,pointAA, new Scalar(255, 255, 0), 4);//左 D->A
 
     }
 
