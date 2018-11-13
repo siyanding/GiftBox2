@@ -16,23 +16,41 @@
         android:gravity="center">
 
         <TextView
-            android:id="@+id/item_recipient"
+            android:id="@+id/item_time"
             android:layout_width="fill_parent"
             android:layout_height="50dp"
-            android:paddingLeft="100dp"
+            android:paddingLeft="130dp"
             android:paddingTop="10dip"
             android:paddingBottom="10dip"
-            android:text="text12"
+            android:text="2018-11-01 03:23:33"
             android:textSize="40px"
             android:gravity="center_vertical"/>
 
-        <ImageView
-            android:id="@+id/item_gift"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_gravity="left|center_vertical"
-            android:layout_marginStart="7dp"
-            android:background="@drawable/ic_gift_gift" />
+        <FrameLayout
+            android:id="@+id/item_user"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/item_username"
+                android:layout_width="fill_parent"
+                android:layout_height="50dp"
+                android:paddingLeft="60dp"
+                android:paddingTop="10dip"
+                android:paddingBottom="10dip"
+                android:text="username"
+                android:textSize="40px"
+                android:gravity="right"/>
+
+            <ImageView
+                android:id="@+id/item_portrait"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/ic_gift_gift" />
+        </FrameLayout>
 
         <CheckBox xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/item_check"

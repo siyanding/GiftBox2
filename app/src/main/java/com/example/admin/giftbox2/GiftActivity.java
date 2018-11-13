@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.bmob.v3.BmobQuery;
+import cn.bmob.v3.BmobUser;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.FindListener;
 
@@ -59,9 +60,6 @@ public class GiftActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gift);
-
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the two
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -74,8 +72,13 @@ public class GiftActivity extends AppCompatActivity {
         ContextHolder.initial(this);
         thisContext = ContextHolder.getContext();
 
+        BmobUser currentUser = BmobUser.getCurrentUser();
         Intent intent = getIntent();
         username = intent.getStringExtra("username");
+        if (username == ""){
+            username = currentUser.getUsername();
+            System.out.println("currentErin:" + username);
+        }
     }
 
 
@@ -121,13 +124,16 @@ public class GiftActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater,
                                  ViewGroup container,
                                  Bundle savedInstanceState) {
+            int sectionNum = getArguments().getInt(ARG_SECTION_NUMBER);
             rootView = inflater.inflate(R.layout.rootview_gift, container, false);
             listView = (ListView)rootView.findViewById(R.id.listview);
+            TextView titleUser = rootView.findViewById(R.id.title_user);
+            titleUser.setText(sectionNum == 1 ? "sent to" : "sent by");
             listView.setOnItemClickListener((adapterView, view, position, id) -> {
                 ((GiftActivity)getActivity()).selectedGift = (Gift) listView.getItemAtPosition(position);
                 viewGift();
             });
-            giftSetUp(getArguments().getInt(ARG_SECTION_NUMBER));
+            giftSetUp(sectionNum);
 
             EditText searchEt = (EditText) rootView.findViewById(R.id.search_gift);
             TextWatcher searchTw = new TextWatcher() {

@@ -34,6 +34,49 @@
     <View style="@style/list_item_seperator_layout"
         android:layout_height="1dp"/>
 
+    <FrameLayout
+        android:id="@+id/title_gift"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/title_user"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:paddingLeft="30dp"
+            android:paddingTop="10dip"
+            android:paddingBottom="10dip"
+            android:text="sent by"
+            android:textSize="40px"
+            android:gravity="left"/>
+
+        <TextView
+            android:id="@+id/title_time"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:paddingTop="10dip"
+            android:paddingBottom="10dip"
+            android:text="received at"
+            android:textSize="40px"
+            android:gravity="center_horizontal"/>
+
+        <TextView
+            android:id="@+id/title_found"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:paddingRight="50dp"
+            android:paddingTop="10dip"
+            android:paddingBottom="10dip"
+            android:text="found"
+            android:textSize="40px"
+            android:gravity="right"/>
+
+    </FrameLayout>
+
+    <View style="@style/list_item_seperator_layout"
+        android:layout_height="1dp"/>
+
     <ListView
         android:id="@+id/listview"
         android:layout_width="fill_parent"

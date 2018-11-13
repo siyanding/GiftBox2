@@ -14,7 +14,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
-        android:gravity="center">
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/mainSeperator">
 
         <EditText
             android:id="@+id/search_MainGift"
@@ -39,15 +41,64 @@
     <View style="@style/list_item_seperator_layout"
         android:layout_height="1dp"
         app:layout_constraintTop_toBottomOf = "@+id/findMain_layout"
+        app:layout_constraintBottom_toTopOf="@+id/title_gift"
         android:id="@+id/mainSeperator"/>
+
+    <FrameLayout
+        android:id="@+id/title_gift"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf = "@+id/mainSeperator"
+        app:layout_constraintBottom_toTopOf="@+id/mainSeperator1"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/title_user"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:paddingLeft="30dp"
+            android:paddingTop="10dip"
+            android:paddingBottom="10dip"
+            android:text="sent by"
+            android:textSize="40px"
+            android:gravity="left"/>
+
+        <TextView
+            android:id="@+id/title_time"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:paddingTop="10dip"
+            android:paddingBottom="10dip"
+            android:text="received at"
+            android:textSize="40px"
+            android:gravity="center_horizontal"/>
+
+        <TextView
+            android:id="@+id/title_found"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:paddingRight="50dp"
+            android:paddingTop="10dip"
+            android:paddingBottom="10dip"
+            android:text="found"
+            android:textSize="40px"
+            android:gravity="right"/>
+
+    </FrameLayout>
+
+    <View style="@style/list_item_seperator_layout"
+        android:layout_height="1dp"
+        app:layout_constraintTop_toBottomOf = "@+id/title_gift"
+        app:layout_constraintBottom_toTopOf="@id/main_list"
+        android:id="@+id/mainSeperator1"/>
 
     <ListView
         android:id="@+id/main_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="56dp"
+        android:layout_marginTop="100dp"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp"
-        app:layout_constraintTop_toBottomOf="@+id/mainSeperator"/>
+        app:layout_constraintTop_toBottomOf="@+id/title_gift"/>
 
 </android.support.constraint.ConstraintLayout>
