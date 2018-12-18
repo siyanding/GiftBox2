@@ -56,14 +56,13 @@ public class BottomImageView extends AppCompatImageView {
                 int thisWidth = this.getWidth();
                 int thisHeight = this.getHeight();
 
-                int zoomViewWidth = zoomView.getWidth();
-                int zoomViewHeight = zoomView.getHeight();
-                int[] zoomViewX0Y0 = new int[2]; zoomView.getLocationInWindow(zoomViewX0Y0);
-
+//                int zoomViewWidth = zoomView.getWidth();
+//                int zoomViewHeight = zoomView.getHeight();
+                int[] zoomViewX0Y0 = new int[2];
+                zoomView.getLocationInWindow(zoomViewX0Y0);
                 int[] imageXY = xy2ImageXY((int)event.getX(), (int)event.getY(), thisWidth, thisHeight, imageWidth, imageHeight);
-
-                Matrix mm1 = imageXY2ViewXY(imageXY[0], imageXY[1], zoomViewWidth, zoomViewHeight);
-                zoomView.setImageMatrix(mm1);
+//                Matrix mm1 = imageXY2ViewXY(imageXY[0], imageXY[1], zoomViewWidth, zoomViewHeight);
+//                zoomView.setImageMatrix(mm1);
                 break;
             default:
                 break;

@@ -75,7 +75,7 @@ public class GiftAdapter extends BaseAdapter {
             v = convertView;
         }
         Gift item = (Gift) getItem(position);
-        findUser(sectionNum == 1 ? item.getRecipient() : item.getUser());
+//        findUser(sectionNum == 1 ? item.getRecipient() : item.getUser());
         userImageView  = (ImageView) v.findViewById(R.id.item_portrait);
         TextView usernameTv = (TextView) v.findViewById(R.id.item_username);
         TextView timeTv = (TextView) v.findViewById(R.id.item_time);
@@ -100,86 +100,9 @@ public class GiftAdapter extends BaseAdapter {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
         SimpleDateFormat usFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm");
         usFormat.setTimeZone(TimeZone.getTimeZone("America/Chicago"));
 //        System.out.println("北京时间: " + time +"对应的东京时间为:"  + tokyoSdf.format(date));
         return usFormat.format(date);
-    }
-
-    private void findUser(String username) {
-        System.out.println("GiftAdapter:" + username);
-        BmobQuery<User> query = new BmobQuery<>();
-        query.addWhereEqualTo( "username", username);
-        query.setLimit(50);
-        query.findObjects(new FindListener<User>() {
-            @Override
-            public void done(List<User> user, BmobException e) {
-                if(e==null){
-                    currentUser = user.get(0);
-                    getImage(currentUser.getPortrait());
-                }else{
-                    Log.i("bmob","failed："+e.getMessage()+","+e.getErrorCode());
-                    findUser(username);
-                }
-            }
-        });
-    }
-
-    //use Handle to update main thread(UI thread)
-    private static Handler handler = new Handler(){
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case SUCCESS:
-                    System.out.println("user portrait download success");
-                    Bitmap portraitBitmap = (Bitmap) msg.obj;
-                    userImageView.setImageBitmap(portraitBitmap);
-                    System.out.println("GiftAdapter: SUCCESS");
-                    break;
-                case ERROR:
-                    System.out.println("GiftAdapter: ERROR");
-                    break;
-                case NETWORK_ERROR:
-                    System.out.println("GiftAdapter: NETWORK_ERROR");
-                    break;
-            }
-        };
-    };
-
-    public static void getImage(String imagePath) {
-        new Thread() {
-            public void run() {
-                try {
-                    URL url = new URL(imagePath);
-
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("GET");
-                    conn.setConnectTimeout(5000);
-                    System.out.println("respond code --" + conn.getResponseCode());
-                    if (conn.getResponseCode() == 200) {
-
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-                        InputStream in = conn.getInputStream();
-                        Bitmap bitmap = BitmapFactory.decodeStream(in, null, options);
-                        //use handler send message
-                        Message msg = Message.obtain();
-                        msg.obj = bitmap;//data being sent
-                        msg.what = SUCCESS;//handler can have different actions depends on different message
-                        handler.sendMessage(msg);
-                        in.close();
-                    } else {
-                        Message msg = Message.obtain();
-                        msg.what = ERROR;
-                        handler.sendMessage(msg);
-                    }
-                } catch (Exception e) {
-                    Message msg = Message.obtain();
-                    msg.what = NETWORK_ERROR;
-                    handler.sendMessage(msg);
-                    e.printStackTrace();
-                }
-            }
-        }.start();
     }
 }

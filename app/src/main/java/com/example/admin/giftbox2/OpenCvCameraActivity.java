@@ -1,37 +1,17 @@
 package com.example.admin.giftbox2;
 
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-
-import com.google.ar.core.Anchor;
-import com.google.ar.core.ArCoreApk;
-import com.google.ar.core.HitResult;
-import com.google.ar.core.Plane;
-import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
-import com.google.ar.sceneform.AnchorNode;
-import com.google.ar.sceneform.math.Vector3;
-import com.google.ar.sceneform.rendering.Color;
-import com.google.ar.sceneform.rendering.MaterialFactory;
-import com.google.ar.sceneform.rendering.ModelRenderable;
-import com.google.ar.sceneform.rendering.ShapeFactory;
-import com.google.ar.sceneform.ux.ArFragment;
-import com.google.ar.sceneform.ux.TransformableNode;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -55,7 +35,6 @@ import org.opencv.core.Size;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
-import org.opencv.features2d.Features2d;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.InputStream;
@@ -65,7 +44,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
+
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.UpdateListener;
 
 public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -75,9 +59,6 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
 
     CameraBridgeViewBase mCVCamera;
     private static final String TAG = "OpenCvCameraActivity";
-    private static final double MIN_OPENGL_VERSION = 3.0;
-    private ArFragment arFragment;
-    private ModelRenderable andyRenderable;
     private Mat mRgba;
     private static int Cur_State = 0;
     static boolean imageReady = false;
@@ -89,6 +70,8 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
     private  boolean tag = false;
     private Context thisContext;
     private static double[] points = new double[8];
+    private String wholePath;
+    private String objectId;
 
 
     //use Handle to update main thread(UI thread)
@@ -127,15 +110,12 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
     BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
-            System.out.println("onManagerConnected A");
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS:
-                    System.out.println("onManagerConnected B");
                     Log.i(TAG, "OpenCV loaded successfully");
                     mCVCamera.enableView();
                     break;
                 default:
-                    System.out.println("onManagerConnected C");
                     break;
             }
         }
@@ -144,39 +124,28 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
     protected void onCreate(Bundle savedInstanceState) {
-        System.out.println("onCreate A");
         super.onCreate(savedInstanceState);
 
-//        if (!checkIsSupportedDeviceOrFinish(this)) {
-//            System.out.println("onCreate -----------------------------------------");
-//            return;
-//        }
-//        System.out.println("onCreate C");
         setContentView(R.layout.activity_open_cv_camera);
-//        arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
-
 
         processedBitmap = null;
         mCVCamera = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mCVCamera.setCvCameraViewListener(this);
-        System.out.println("onCreate B");
         ContextHolder.initial(this);
         thisContext = ContextHolder.getContext();
 
-        System.out.println("onCreate D");
-
-        System.out.println("onCreate H");
         Intent intent = getIntent();
         String imagePath = intent.getStringExtra("imageUrl");
         String [] pointStr = intent.getStringExtra("points").trim().split(" ");
         String username = intent.getStringExtra("username");
-        System.out.println("onCreate I");
+        wholePath = intent.getStringExtra("whole");
+        objectId = intent.getStringExtra("objectId");
         for (int i=0; i<pointStr.length; i++){
             System.out.println("pointsString:" + i + ":" + pointStr[i]);
             points[i] = Double.parseDouble(pointStr[i]);
         }
         getImage(imagePath);
-        System.out.println("onCreate J");
+//        getImageBitmap()
         Button findButton = (Button) findViewById(R.id.find_btn);
         Button cancelButton = (Button) findViewById(R.id.cancel_btn);
 
@@ -186,7 +155,6 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
                 Cur_State = 1;
             }
         });
-        System.out.println("onCreate K");
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -196,7 +164,6 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
                 startActivity(intent);
             }
         });
-        System.out.println("onCreate M");
     }
 
 
@@ -223,9 +190,6 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
             Mat camera = inputFrame.rgba();
             Mat processedCamera = new Mat();
             Mat giftImage = new Mat();
-            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.congratulations);
-            Mat congrats = new Mat(bitmap.getWidth(), bitmap.getHeight(), CvType.CV_8UC3);
-            Utils.bitmapToMat(bitmap, congrats);
 
             preProcess( camera, processedCamera, giftImage );
 
@@ -279,15 +243,11 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
 
                     double threshold = caculateThreshold(giftKeypoints, cameraKeypoints,
                             templateTransformResult,templateCorners, bestMatchesList);
-                    processedCamera = findObject(templateTransformResult, threshold, processedCamera, congrats);
+                    processedCamera = findObject(templateTransformResult, threshold, processedCamera);
                 }
             }
 
-//            Mat m = new Mat(processedCamera,new Rect(0,0,70, 70));
-//            double[] size = {70, 70};
-//            Imgproc.resize(congrats,congrats,new Size(size));
-//            Imgproc.cvtColor(congrats, congrats, Imgproc.COLOR_RGBA2RGB);
-//            congrats.copyTo(m);
+
             Core.rotate(processedCamera, processedCamera, Core.ROTATE_90_COUNTERCLOCKWISE);
             Imgproc.resize(processedCamera, processedCamera, camera.size());
             return processedCamera;
@@ -358,10 +318,6 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
             templateCorners.put(1, 0, new double[]{points[2], points[3]});
             templateCorners.put(2, 0, new double[]{points[4], points[5]});
             templateCorners.put(3, 0, new double[]{points[6], points[7]});
-//            templateCorners.put(0, 0, new double[]{0, 0});
-//            templateCorners.put(1, 0, new double[]{giftImage.cols(), 0});
-//            templateCorners.put(2, 0, new double[]{giftImage.cols(), giftImage.rows()});
-//            templateCorners.put(3, 0, new double[]{0, giftImage.rows()});
             //使用 perspectiveTransform 将模板图进行透视变以矫正图象得到标准图片
             Core.perspectiveTransform(templateCorners, templateTransformResult, homography);
             corners[0] = templateTransformResult;
@@ -375,7 +331,7 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
      * @param threshold
      * @param processedCamera
      */
-    public Mat findObject(Mat templateTransformResult, double threshold, Mat processedCamera, Mat congrats){
+    public Mat findObject(Mat templateTransformResult, double threshold, Mat processedCamera){
 
         double[] pointA = templateTransformResult.get(0, 0);
         double[] pointB = templateTransformResult.get(1, 0);
@@ -429,14 +385,11 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
         Imgproc.line(processedCamera, new Point(pointB),new Point(pointC), new Scalar(red, green, 0), 4);//右 B->C
         Imgproc.line(processedCamera, new Point(pointC),new Point(pointD), new Scalar(red, green, 0), 4);//下 C->D
         Imgproc.line(processedCamera, new Point(pointD),new Point(pointA), new Scalar(red, green, 0), 4);//左 D->A
-
-        if (tag){
-            Mat m = new Mat(processedCamera,new Rect((int)cameraMinX,(int)cameraMinY,(int) cameraW, (int)cameraH));
-            double[] size = {cameraW, cameraH};
-            Imgproc.resize(congrats,congrats,new Size(size));
-            Imgproc.cvtColor(congrats, congrats, Imgproc.COLOR_RGBA2RGB);
-            congrats.copyTo(m);
-        }
+//=========================================================================================================================
+//        if (tag){
+//            getThansform()
+//        }
+//        ===============================================================================================================
 //        double offset = inputFrame.cols()/2;
 //        Point pointAA = new Point(new double[]{points[0] + offset, points[1]});//processedCamera.cols()
 //        Point pointBB = new Point(new double[]{points[2] + offset, points[3]});
@@ -450,20 +403,35 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
 
     }
 
+    public Mat getThansform(Mat drawable, Mat region, int[] points) {
+        Mat drawableCorner = new Mat(4, 1, CvType.CV_32FC2);
+        Mat drawableTransformCorner = new Mat(4, 1, CvType.CV_32FC2);
+
+        drawableCorner.put(0, 0, new double[]{0.0, 0.0});
+        drawableCorner.put(1, 0, new double[]{drawable.cols(), 0.0});
+        drawableCorner.put(2, 0, new double[]{drawable.cols(), drawable.rows()});
+        drawableCorner.put(3, 0, new double[]{0.0, drawable.rows()});
+
+        drawableTransformCorner.put(0, 0, new double[]{points[0], points[1]});
+        drawableTransformCorner.put(1, 0, new double[]{points[2], points[3]});
+        drawableTransformCorner.put(2, 0, new double[]{points[4], points[5]});
+        drawableTransformCorner.put(3, 0, new double[]{points[6], points[7]});
+
+        Mat perspectiveTransform = Imgproc.getPerspectiveTransform(drawableCorner, drawableTransformCorner);
+        Imgproc.warpPerspective(drawable, region, perspectiveTransform, region.size(), Imgproc.INTER_LINEAR,
+                Core.BORDER_TRANSPARENT, new Scalar(0, 0, 0, 0));
+
+        return region;
+    }
+
     /**
      * take care of all image processing, this method will be called every time camera frame refreshed
      */
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        System.out.println("onCameraFrame A");
         if( Cur_State  == 1 && imageReady ) {
-            System.out.println("onCameraFrame B");
-//            showAndroidMan();
-            System.out.println("onCameraFrame C");
             if (tag){
-//                showAndroidMan();
-
-                System.out.println("onCameraFrame D");
+                updateGift();
                 this.runOnUiThread(new Runnable() {
                     public void run() {
                         final Toast toast = Toast.makeText(thisContext, "find it!!!" , Toast.LENGTH_SHORT);
@@ -471,50 +439,35 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
                     }
                 });
             }
-
             return  compareKeypoints(inputFrame);
         } else {
             return inputFrame.rgba();
         }
     }
 
-    private void showAndroidMan(){
-//        MaterialFactory.makeOpaqueWithColor(this, new Color(android.graphics.Color.RED))
-//                .thenAccept(
-//                        material -> {
-//                            andyRenderable =
-//                                    ShapeFactory.makeSphere(0.1f, new Vector3(0.0f, 0.15f, 0.0f), material); });
-//        arFragment.setOnTapArPlaneListener(
-//                (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-//                    if (andyRenderable == null) {
-//                        return;
-//                    }
-//
-//                    // Create the Anchor.
-//                    Anchor anchor = hitResult.createAnchor();
-//                    AnchorNode anchorNode = new AnchorNode(anchor);
-//                    anchorNode.setParent(arFragment.getArSceneView().getScene());
-//
-//                    // Create the transformable andy and add it to the anchor.
-//                    TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
-//                    andy.setParent(anchorNode);
-//                    andy.setRenderable(andyRenderable);
-//                    andy.select();
-//                });
-    }
+    public void updateGift(){
+        Gift  giftUpdate= new Gift();
+        giftUpdate.setStatus(true);
+        giftUpdate.update(objectId, new UpdateListener() {
 
+            @Override
+            public void done(BmobException e) {
+                if(e==null){
+                    Intent intent = new Intent(thisContext, ViewGiftActivity.class);
+                    intent.putExtra("whole",wholePath);
+                    startActivity(intent);
+                    Toast.makeText(thisContext, "update success", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(thisContext, "update fail", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+        });
+    }
 
     @Override
     public void onResume() {
-        System.out.println("onResume A");
         super.onResume();
-//        // ARCore requires camera permission to operate.
-//        if (!CameraPermissionHelper.hasCameraPermission(this)) {
-//            CameraPermissionHelper.requestCameraPermission(this);
-//            System.out.println("onResume B");
-//            return;
-//        }
-//        System.out.println("onResume C");
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "OpenCV library not found!");
 
@@ -523,23 +476,7 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
 
         }
-        System.out.println("onResume D");
     }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
-        System.out.println("onRequestPermission A ---------------------");
-        if (!CameraPermissionHelper.hasCameraPermission(this)) {
-            Toast.makeText(this, "Camera permission is needed to run this application", Toast.LENGTH_LONG)
-                    .show();
-            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {
-                // Permission denied with checking "Do not ask again".
-                CameraPermissionHelper.launchPermissionSettings(this);
-            }
-            finish();
-        }
-    }
-
 
     public static void getImage(String imagePath) {
         new Thread() {
@@ -576,35 +513,5 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
                 }
             }
         }.start();
-    }
-
-    /**
-     * Returns false and displays an error message if Sceneform can not run, true if Sceneform can run
-     * on this device.
-     *
-     * <p>Sceneform requires Android N on the device as well as OpenGL 3.0 capabilities.
-     *
-     * <p>Finishes the activity if Sceneform can not run
-     */
-    public static boolean checkIsSupportedDeviceOrFinish(final Activity activity) {
-        System.out.println("checkIsSupportedDeviceOrFinish");
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            Log.e(TAG, "Sceneform requires Android N or later");
-            Toast.makeText(activity, "Sceneform requires Android N or later", Toast.LENGTH_LONG).show();
-            activity.finish();
-            return false;
-        }
-        String openGlVersionString =
-                ((ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE))
-                        .getDeviceConfigurationInfo()
-                        .getGlEsVersion();
-        if (Double.parseDouble(openGlVersionString) < MIN_OPENGL_VERSION) {
-            Log.e(TAG, "Sceneform requires OpenGL ES 3.0 later");
-            Toast.makeText(activity, "Sceneform requires OpenGL ES 3.0 or later", Toast.LENGTH_LONG)
-                    .show();
-            activity.finish();
-            return false;
-        }
-        return true;
     }
 }

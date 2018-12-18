@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 
 import cn.bmob.v3.BmobQuery;
+import cn.bmob.v3.BmobUser;
 import cn.bmob.v3.datatype.BmobFile;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.FindListener;
@@ -75,9 +76,8 @@ public class ContactActivity extends AppCompatActivity {
                         }
                     });
         }
-
-        Intent intent = getIntent();
-        username = intent.getStringExtra("username");
+        User currentUser = BmobUser.getCurrentUser(User.class);
+        username = currentUser.getUsername();
         listView = (ListView) findViewById(android.R.id.list);
         listView.setOnItemLongClickListener((arg0, arg1, position, arg3) -> {
             personOnClick = (Friend) listView.getItemAtPosition(position);
@@ -233,33 +233,11 @@ public class ContactActivity extends AppCompatActivity {
                 intent.putExtra("recipient",personOnClick.getFriend());
 
                 startActivity(intent);
-//                uploadImage();
+//                uploadBackground();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    public void uploadImage() {
-        final int[] callCount = {0};
-        bmobImage.uploadblock(new UploadFileListener() {
-            @Override
-            public void done(BmobException e) {
-                if (e == null) {
-                    BmobImageUrl = bmobImage.getFileUrl();
-                    addGift();
-                } else if (callCount[0] < 5) {
-                    System.out.println("Bmob image upload failed" + e);
-                    uploadImage();
-                    callCount[0]++;
-                }
-            }
-
-            @Override
-            public void onProgress(Integer value) {
-                // return the percent of uploading
-            }
-        });
     }
 
     public void addGift() {

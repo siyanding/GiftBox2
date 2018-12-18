@@ -113,7 +113,7 @@ public class ChooseArea extends View{
         }
 
         // 把touch动作投递到底部的bottomView去，用于控制ZoomArea区域的同步移动
-        bottomView.perform(event);
+//        bottomView.perform(event);
 
         invalidate();
 

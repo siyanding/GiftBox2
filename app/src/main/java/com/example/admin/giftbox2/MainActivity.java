@@ -72,9 +72,6 @@ public class MainActivity extends AppCompatActivity
     private File portraitFile;
     private BmobFile portraitBmob;
     private User currentUser;
-//    portraitBmob = new BmobFile(image);portraitBmob
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,6 +173,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+
             return true;
         }
 
@@ -261,6 +259,8 @@ public class MainActivity extends AppCompatActivity
         intent.putExtra("imageUrl",selectedGift.getBackground());
         intent.putExtra("coordinate",selectedGift.getCoordinate());
         intent.putExtra("points",selectedGift.getPoints());
+        intent.putExtra("whole",selectedGift.getWhole());
+        intent.putExtra("objectId",selectedGift.getObjectId());
         System.out.println("imageUrl:"+ selectedGift.getBackground());
         startActivity(intent);
     }
@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity
     public void onClickPicker(View v) {
         new AlertDialog.Builder(this)
                 .setTitle("Change Portrait")
-                .setItems(new String[]{"Take a photo", "Select from album"}, new DialogInterface.OnClickListener() {
+                .setItems(new String[]{"Take a photo"}, new DialogInterface.OnClickListener() {//new String[]{"Take a photo", "Select from album"}
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         if (i == 0) {

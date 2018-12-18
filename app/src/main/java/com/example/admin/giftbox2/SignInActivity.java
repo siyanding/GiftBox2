@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import cn.bmob.v3.Bmob;
@@ -67,11 +66,6 @@ public class SignInActivity extends AppCompatActivity{
             passwordEdit.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
         }
     }
-
-    public void onClick_ForgetPassEvent(View view) {
-
-    }
-
 
     public void signIn(final String username, final String password){
         final int[] callCount = { 0 };

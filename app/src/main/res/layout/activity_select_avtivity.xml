@@ -1,79 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:orientation="vertical">
 
     <ImageView
+        android:id="@+id/layout2_imageAbove"
         android:layout_width="wrap_content"
         android:layout_height="100dp"
-        android:id="@+id/layout2_imageAbove"
-        android:scaleType="matrix"
-        android:background="#778899"
-        />
+        android:background="#000000"
+        android:scaleType="matrix" />
+
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="20dp"
-        android:background="@android:color/white">
+        android:background="@android:color/black">
 
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:gravity="center"
-            android:background="@android:color/holo_purple"/>
+            android:background="@android:color/black"
+            android:gravity="center" />
     </LinearLayout>
+
     <FrameLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/black">
+        android:background="@android:color/black"
+        android:orientation="vertical">
+
         <com.example.admin.giftbox2.BottomImageView
+            android:id="@+id/layout2_bottomView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@android:color/black"
-            android:id="@+id/layout2_bottomView"
             android:layout_gravity="center_horizontal"
             android:adjustViewBounds="true"
-            />
+            android:background="@android:color/black" />
+
         <com.example.admin.giftbox2.ChooseArea
+            android:id="@+id/layout2_topView"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:id="@+id/layout2_topView"
-            android:adjustViewBounds="true"
             android:layout_gravity="center_horizontal"
-            />
+            android:adjustViewBounds="true" />
 
         <GridView
             android:id="@+id/stickers"
-            android:paddingLeft="20dp"
             android:layout_width="fill_parent"
             android:layout_height="220dip"
-            android:columnWidth="90dip"
-            android:horizontalSpacing="10dip"
-            android:verticalSpacing="10dip"
-            android:fadingEdge="none"
             android:layout_gravity="center_horizontal|bottom"
-            android:numColumns="auto_fit"
-            android:scrollingCache="false"
             android:background="@color/colorStickersBack"
-            android:visibility="invisible"/>
+            android:columnWidth="90dip"
+            android:fadingEdge="none"
+            android:horizontalSpacing="10dip"
+            android:numColumns="auto_fit"
+            android:paddingLeft="20dp"
+            android:scrollingCache="false"
+            android:verticalSpacing="10dip"
+            android:visibility="invisible" />
 
-        <Button android:layout_width="50dp" android:layout_height="50dp"
+        <Button
             android:id="@+id/check"
-            android:background="@drawable/ic_menu_check"
             style="@style/SmsButton"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_gravity="bottom|center"
-            android:onClick="onClick_CheckEvent"
-        /> 
+            android:background="@drawable/ic_menu_check"
+            android:onClick="onClick_CheckEvent" /> 
 
         <ImageView
             android:id="@+id/sticker"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_gravity="center"
-            android:visibility="invisible"/>
+            android:visibility="invisible" />
     </FrameLayout>
 
 </LinearLayout>

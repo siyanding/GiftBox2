@@ -1,8 +1,8 @@
 package com.example.admin.giftbox2;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -13,11 +13,9 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
@@ -29,7 +27,6 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
-import org.opencv.core.CvException;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
@@ -39,17 +36,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 
 import cn.bmob.v3.datatype.BmobFile;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.SaveListener;
 import cn.bmob.v3.listener.UploadFileListener;
 
-public class SelectActivity extends AppCompatActivity {
+public class SelectActivity extends Activity{//AppCompatActivity
     static {
         System.loadLibrary("native-lib");
     }
@@ -73,10 +67,7 @@ public class SelectActivity extends AppCompatActivity {
     private ImageView zoomArea;
     private Bitmap bm;
     private Bitmap giftBitmap;
-    private volatile static boolean stop = false;
-
-    public static final int REQUEST_CAMERA = 3;
-    public static final int REQUEST_CROP = 5;
+//    private List<String> gifts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +79,7 @@ public class SelectActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         imagePath = intent.getStringExtra("imagePath");
+        System.out.println("SelectActivity imagePath:" + imagePath);
         username = intent.getStringExtra("username");
         coordinate = intent.getStringExtra("coordinate");
         recipient = intent.getStringExtra("recipient");
@@ -96,14 +88,14 @@ public class SelectActivity extends AppCompatActivity {
 //        ((ImageView)findViewById(R.id.layout2_imageAbove)).setImageBitmap(bm);
 
 //        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_select_avtivity);
         bottomImageView = (BottomImageView) findViewById(R.id.layout2_bottomView);
         bottomImageView.setImageBitmap(bm);
-        zoomArea = (ImageView) findViewById(R.id.layout2_imageAbove);
-        zoomArea.setImageBitmap(bm);
+//        zoomArea = (ImageView) findViewById(R.id.layout2_imageAbove);
+//        zoomArea.setImageBitmap(bm);
         chooseArea = (ChooseArea) findViewById(R.id.layout2_topView);
-        bottomImageView.setZoomView(zoomArea);
+//        bottomImageView.setZoomView(zoomArea);
         chooseArea.setBottomView(bottomImageView);
         chooseArea.setRegion(new Point(20, 40), new Point(60, 40), new Point(60, 90), new Point(20, 90));
         button = (Button) findViewById(R.id.check);
@@ -120,62 +112,94 @@ public class SelectActivity extends AppCompatActivity {
         };
         EventManager.setEventListener(event);
 
-
         sticker = (ImageView) findViewById(R.id.sticker);
-        stickerAdapter = new StickerAdapter(this);
+//        stickerAdapter = new StickerAdapter(this, gifts);
+        stickerAdapter = new StickerAdapter(thisContext);
         stickersGridView = (GridView) findViewById(R.id.stickers);
         stickersGridView.setAdapter(stickerAdapter);
         stickersGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 stickersGridView.setVisibility(View.INVISIBLE);
-//                SpannableString spannableString = new SpannableString(view
-//                        .getTag().toString());
                 Drawable drawable1 = getResources().getDrawable(
                         (int) stickerAdapter.getItemId(position));
-                Mat drawable = new Mat();
+//                drawable = new Mat();
                 if (position == 0) {
-                    createGift();
-                    System.out.println(giftBitmap == null);
-                    while (!stop) {
+                    File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_PICTURES), "giftbox");
+                    if (!mediaStorageDir.exists()) {
+                        if (!mediaStorageDir.mkdirs()) {
+                            Log.d("MyCameraApp", "failed to create directory");
+                        }
                     }
-                    System.out.println(giftBitmap == null);
-                    Utils.bitmapToMat(giftBitmap, drawable);
-                    Imgproc.cvtColor(drawable, drawable, Imgproc.COLOR_RGBA2RGB);
-
-
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    drawableFile = new File(mediaStorageDir.getPath() + File.separator +
+                            "IMG_" + timeStamp + ".jpg");
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//                    intent.putExtra("recipient", personOnClick.getFriend());
+                    intent.addCategory(Intent.CATEGORY_DEFAULT);
+                    Uri uri;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        uri = FileProvider.getUriForFile(thisContext, BuildConfig.APPLICATION_ID+".fileprovider", drawableFile);//BuildConfig.APPLICATION_ID + ".fileProvider"
+                    } else {
+                        uri = Uri.fromFile(drawableFile);
+                    }
+                    // set the address for picture
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                    startActivityForResult(intent, 0);
                 } else {
-//                    sticker.setBackground(drawable);
-                    sticker.setVisibility(View.VISIBLE);
-                    drawable = getDrawAble(drawable1);
+                    System.out.println("drawable id 1: " + stickerAdapter.getItemId(1));//9
+                    System.out.println("drawable id 2: " + stickerAdapter.getItemId(2));//9
+                    System.out.println("drawable id 3: " + stickerAdapter.getItemId(3));//9
+                    System.out.println("drawable id 4: " + stickerAdapter.getItemId(4));//9
+                    System.out.println("drawable id 5: " + stickerAdapter.getItemId(5));//9
+                    System.out.println("drawable id 6: " + stickerAdapter.getItemId(6));//9
+                    System.out.println("drawable id 7: " + stickerAdapter.getItemId(7));//9
+                    System.out.println("drawable id 8: " + stickerAdapter.getItemId(8));//9
+                    System.out.println("drawable id 9: " + stickerAdapter.getItemId(9));//9
+//                    sticker.setVisibility(View.VISIBLE);
+//                    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    Point[] points = chooseArea.getRegion();
+                    String pointStr = "";
+                    for (int i = 0; i < points.length; i++) {
+                        pointStr += points[i].x + " " + points[i].y + " ";
+                    }
+                    Intent intent = new Intent(SelectActivity.this, GenerateGiftActivity.class);
+                    intent.putExtra("type",2);
+                    intent.putExtra("drawablePath", stickerAdapter.getItemId(position)+"");
+                    intent.putExtra("regionPath", imagePath);
+                    intent.putExtra("username",username);
+                    intent.putExtra("coordinate",coordinate);
+                    intent.putExtra("recipient",recipient);
+                    intent.putExtra("points", pointStr);
+                    startActivity(intent);
+//                    Mat drawable = getDrawAble(drawable1);
+//                                    Mat region = new Mat();
+//                Utils.bitmapToMat(bm, region);
+//                Imgproc.cvtColor(region, region, Imgproc.COLOR_RGB2RGBA);
+//                Imgproc.cvtColor(drawable, drawable, Imgproc.COLOR_RGB2RGBA);
+//                Mat temp = getThansform(drawable, region);//reSizeGift(drawable,region);
+//                Core.rotate(temp, temp, Core.ROTATE_90_CLOCKWISE);
+//
+//                System.out.println("temp width:" + temp.cols() + "<===> temp height:" + temp.rows());
+//                Bitmap bmp = null;
+//                try {
+//                    bmp = Bitmap.createBitmap(temp.cols(), temp.rows(), Bitmap.Config.ARGB_8888);
+//                    Utils.matToBitmap(temp, bmp);
+//                } catch (CvException e) {
+//                    Log.d("Exception", e.getMessage());
+//                }
+//                sticker.setImageBitmap(bmp);
+//                sticker.bringToFront();
+
                 }
-
-
-                Mat region = new Mat();
-                Utils.bitmapToMat(bm, region);
-                Mat temp = getThansform(drawable, region);//reSizeGift(drawable,region);
-                Core.rotate(temp, temp, Core.ROTATE_90_CLOCKWISE);
-
-                System.out.println("temp width:" + temp.cols() + "<===> temp height:" + temp.rows());
-                Bitmap bmp = null;
-                try {
-                    bmp = Bitmap.createBitmap(region.cols(), region.rows(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(region, bmp);
-                } catch (CvException e) {
-                    Log.d("Exception", e.getMessage());
-                }
-                sticker.setImageBitmap(bmp);
-                sticker.bringToFront();
-
-
             }
         });
     }
 
     public Mat getThansform(Mat drawable, Mat region) {
-        Imgproc.cvtColor(drawable, drawable, Imgproc.COLOR_RGBA2RGB);
-        Imgproc.cvtColor(region, region, Imgproc.COLOR_RGBA2RGB);
-
+        Imgproc.cvtColor(drawable, drawable, Imgproc.COLOR_RGB2RGBA);
+        Imgproc.cvtColor(region, region, Imgproc.COLOR_RGB2RGBA);
         Mat drawableCorner = new Mat(4, 1, CvType.CV_32FC2);
         Mat drawableTransformCorner = new Mat(4, 1, CvType.CV_32FC2);
         Point[] points = chooseArea.getRegion();
@@ -191,22 +215,8 @@ public class SelectActivity extends AppCompatActivity {
 
         Mat perspectiveTransform = Imgproc.getPerspectiveTransform(drawableCorner, drawableTransformCorner);
 
-//        Mat dst = region.clone();
         Imgproc.warpPerspective(drawable, region, perspectiveTransform, region.size(), Imgproc.INTER_LINEAR,
                 Core.BORDER_TRANSPARENT, new Scalar(0, 0, 0, 0));
-
-
-//        double[] size = {region.cols(), region.rows()};
-//        Imgproc.resize(dst, dst, new Size(size));
-//        Mat mask = dst.clone();
-//        Imgproc.cvtColor(dst, dst, Imgproc.COLOR_RGBA2RGB);
-//        Imgproc.cvtColor(mask, mask, Imgproc.COLOR_RGBA2GRAY);
-//        Imgproc.threshold(mask,mask,128, 255, Imgproc.THRESH_BINARY);//THRESH_BINARY_INV
-//        Imgproc.cvtColor(region, region, Imgproc.COLOR_RGBA2RGB);
-//
-//        dst.copyTo(region, mask);
-
-
         return region;
     }
 
@@ -262,23 +272,11 @@ public class SelectActivity extends AppCompatActivity {
 //        BmobFile bmobImage = new BmobFile(image);
 //
 //        System.out.println("SelectActivity:" + chooseArea.isFlag());
-//        uploadImage(bmobImage,points);
+//        uploadBackground(bmobImage,points);
 //        button.setVisibility(View.INVISIBLE);
     }
 
-    public int getWidth() {
-        Point[] points = chooseArea.getRegion();
-        List<Integer> giftXs = Arrays.asList(points[0].x, points[1].x, points[2].x, points[3].x);
-        List<Integer> giftYs = Arrays.asList(points[0].y, points[1].y, points[2].y, points[3].y);
-        int giftMinX = giftXs.stream().min(Comparator.naturalOrder()).get();
-        int giftMinY = giftYs.stream().min(Comparator.naturalOrder()).get();
-        int giftMaxX = giftXs.stream().max(Comparator.naturalOrder()).get();
-        int giftMaxY = giftYs.stream().max(Comparator.naturalOrder()).get();
-//                int giftW = Math.abs(giftMinX-giftMaxX) > Math.abs(giftMinY-giftMaxY) ? Math.abs(giftMinX-giftMaxX) : Math.abs(giftMinY-giftMaxY);//big
-        int giftH = Math.abs(giftMinX - giftMaxX) > Math.abs(giftMinY - giftMaxY) ? Math.abs(giftMinY - giftMaxY) : Math.abs(giftMinX - giftMaxX);//small
 
-        return giftH;
-    }
 
     public void uploadImage(BmobFile bmobImage, Point[] points) {
         final int[] callCount = {0};
@@ -294,7 +292,6 @@ public class SelectActivity extends AppCompatActivity {
                     callCount[0]++;
                 }
             }
-
             @Override
             public void onProgress(Integer value) {
                 // return the percent of uploading
@@ -338,59 +335,50 @@ public class SelectActivity extends AppCompatActivity {
         });
     }
 
-    private void createGift() {
-        System.out.println("SelectActivity create Gift");
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "giftbox");
-        if (!mediaStorageDir.exists()) {
-            if (!mediaStorageDir.mkdirs()) {
-                Log.d("MyCameraApp", "failed to create directory");
-            }
-        }
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        drawableFile = new File(mediaStorageDir.getPath() + File.separator +
-                "IMG_" + timeStamp + ".jpg");
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        intent.putExtra("recipient", personOnClick.getFriend());
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        Uri uri;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            uri = FileProvider.getUriForFile(thisContext, BuildConfig.APPLICATION_ID + ".fileprovider", image);//BuildConfig.APPLICATION_ID + ".fileProvider"
-        } else {
-            uri = Uri.fromFile(drawableFile);
-        }
-        // set the address for picture
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-        startActivityForResult(intent, 0);
-    }
 
     @Override
-    protected void onActivityResult(int requestCode, int result, Intent data) {
-        super.onActivityResult(requestCode, result, data);
-        System.out.println("SelectActivity onActivityResult");
-        if (result == RESULT_OK) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("SelectActivity: enter onActivity Result" );
+        if (resultCode == RESULT_OK && requestCode == 0) {
             try {
-                System.out.println("SelectActivity RESULT_OK");
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-                giftBitmap = BitmapFactory.decodeFile(drawableFile.getPath(), options);
-                System.out.println("SelectActivity giftBitmap create:" + giftBitmap == null);
-                int width = giftBitmap.getWidth();
-                int height = giftBitmap.getHeight();
-                int w = width >= height ? 80 : 60;
-                int h = width >= height ? 60 : 80;
-                giftBitmap = Bitmap.createScaledBitmap(giftBitmap, w, h, false);
-                try (FileOutputStream out = new FileOutputStream(image.getPath())) {
-
-                    giftBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out); // bmp is your Bitmap instance
-                    stop = true;
+                Bitmap bitmap = BitmapFactory.decodeFile(drawableFile.getPath(), options);
+                int width = bitmap.getWidth();
+                int height = bitmap.getHeight();
+                int w = width >= height ? 800 : 600;
+                int h = width >= height ? 600 : 800;
+                bitmap = Bitmap.createScaledBitmap(bitmap, w, h, false);
+                try (FileOutputStream out = new FileOutputStream(drawableFile.getPath())) {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out); // bmp is your Bitmap instance
                     // PNG is a lossless format, the compression factor (100) is ignored
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                Point[] points = chooseArea.getRegion();
+                String pointStr = "";
+                for (int i = 0; i < points.length; i++) {
+                    pointStr += points[i].x + " " + points[i].y + " ";
+                }
+                Intent intent = new Intent(SelectActivity.this, GenerateGiftActivity.class);
+                intent.putExtra("type",1);
+                intent.putExtra("drawablePath", drawableFile.getAbsolutePath());
+                intent.putExtra("regionPath", imagePath);
+                intent.putExtra("username",username);
+                intent.putExtra("coordinate",coordinate);
+                intent.putExtra("recipient",recipient);
+                intent.putExtra("points", pointStr);
+//                intent.putExtra("recipient",personOnClick.getFriend());
+
+                startActivity(intent);
+//                uploadBackground();
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }else {
+            Toast.makeText(this, "cannot get data", Toast.LENGTH_LONG).show();
         }
     }
+
 }

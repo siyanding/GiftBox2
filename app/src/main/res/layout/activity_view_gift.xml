@@ -16,4 +16,25 @@
         android:id="@+id/ViewGift"
         android:scaleType="center"/>
 
+    <LinearLayout
+        android:id="@+id/SendGiftButtons"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        style="@android:style/ButtonBar"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/white">
+
+        <Button
+            android:id="@+id/SendGiftHome"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="Home"
+            android:onClick="onClick_SendGiftHome"
+            android:visibility="invisible"
+            />
+
+    </LinearLayout>
+
 </RelativeLayout>

@@ -6,12 +6,31 @@ public class Gift extends BmobObject {
 
     private String background;
     private String user;
-    private String attachment;
+    private String attach;
     private String coordinate;
     private String comment;
     private String recipient;
     private Boolean status;
     private String points;
+    private String whole;
+
+    public String getAttach() {
+        return attach;
+    }
+
+    public void setAttach(String attach) {
+        this.attach = attach;
+    }
+
+    public String getWhole() {
+        return whole;
+    }
+
+    public void setWhole(String whole) {
+        this.whole = whole;
+    }
+
+
 
     public String getPoints() { return points; }
 
@@ -47,14 +66,6 @@ public class Gift extends BmobObject {
 
     public void setUser(String user) {
         this.user = user;
-    }
-
-    public String getAttachment() {
-        return attachment;
-    }
-
-    public void setAttachment(String attachment) {
-        this.attachment = attachment;
     }
 
     public String getCoordinate() {

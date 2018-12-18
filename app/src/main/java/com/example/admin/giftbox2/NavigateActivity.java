@@ -32,6 +32,8 @@ public class NavigateActivity extends FragmentActivity implements OnMapReadyCall
     private String coordinate;
     private String imageUrl;
     private String points;
+    private String wholePath;
+    private String objectId;
     private double lon,lat;
 
     @Override
@@ -47,6 +49,8 @@ public class NavigateActivity extends FragmentActivity implements OnMapReadyCall
         coordinate = intent.getStringExtra("coordinate");
         imageUrl = intent.getStringExtra("imageUrl");
         points = intent.getStringExtra("points");
+        wholePath = intent.getStringExtra("whole");
+        objectId = intent.getStringExtra("objectId");
         lon = Double.parseDouble(coordinate.split(" ")[0]);
         lat = Double.parseDouble(coordinate.split(" ")[1]);
 
@@ -118,6 +122,8 @@ public class NavigateActivity extends FragmentActivity implements OnMapReadyCall
             Intent intent = new Intent(this, OpenCvCameraActivity.class);
             intent.putExtra("imageUrl",imageUrl);
             intent.putExtra("points",points);
+            intent.putExtra("whole",wholePath);
+            intent.putExtra("objectId",objectId);
             System.out.println("imageUrl:"+ imageUrl);
             startActivity(intent);
         }

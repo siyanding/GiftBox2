@@ -40,6 +40,7 @@ public class FriendAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        System.out.println("I am Groot");
         View v;
         if (convertView == null) {
             v = mInflater.inflate(R.layout.item_contact, parent,

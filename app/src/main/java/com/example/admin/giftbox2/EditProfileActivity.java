@@ -13,6 +13,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.BmobUser;
@@ -24,7 +26,6 @@ public class EditProfileActivity extends AppCompatActivity {
     private String username;
     private Context thisContext;
     private EditText passEdit,confirmEdit;
-    private Button saveButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +36,6 @@ public class EditProfileActivity extends AppCompatActivity {
 
         passEdit = (EditText) findViewById(R.id.password_edit_Profile);
         confirmEdit = (EditText) findViewById(R.id.ConfirmPassword_edit_Profile);
-        saveButton = findViewById(R.id.button_save_Profile);
 
         Intent intent = getIntent();
         username = intent.getStringExtra("username");
@@ -79,47 +79,73 @@ public class EditProfileActivity extends AppCompatActivity {
         }else if (! password.equals(confirmPassword)){
             Toast.makeText(thisContext, "The two passwords must be the same", Toast.LENGTH_SHORT).show();
         }else {
-            updateProfile(username, password);
+//            updateProfile(username, password);
+            updateUser(password);
+
         }
     }
 
-
-    public void updateProfile(String username, final String newPassword){
-        final int[] callCount = { 0 };
-        BmobQuery<User> query = new BmobQuery<>();
-        query.addWhereEqualTo("username", username);
-        query.findObjects(new FindListener<User>() {
-            @Override
-            public void done(List<User> users, BmobException e) {
-                if(e == null){
-                    System.out.println("EditProfile: query success");
-                    saveProfile(users.get(0),newPassword);
-                }else if(callCount[0] < 5){
-                    Log.i("bmob","failed："+e.getMessage()+","+e.getErrorCode());
-                    saveProfile(users.get(0),newPassword);
-                    callCount[0] ++;
-                }
-            }
-        });
-    }
-
-    public void saveProfile(final BmobUser user, final String newPassword){
-        final int[] callCount = { 0 };
-        user.setPassword(newPassword);
-        user.update(user.getObjectId(), new UpdateListener() {
+    private void updateUser(String password) {
+        final User user = BmobUser.getCurrentUser(User.class);
+        user.setPassword(password);
+        user.update(new UpdateListener() {
             @Override
             public void done(BmobException e) {
-                if(e == null){
-                    Toast.makeText(thisContext, "Update success!", Toast.LENGTH_SHORT).show();
-                }else if(callCount[0] < 5){
-                    saveProfile(user, newPassword);
-                    Toast.makeText(thisContext, "Update failed! Try again", Toast.LENGTH_SHORT).show();
-                    Log.i("bmob","update failed："+e.getMessage()+","+e.getErrorCode());
-                    callCount[0] ++;
+                if (e == null) {
+                    Toast.makeText(thisContext, "update success, go to main page after 2 seconds", Toast.LENGTH_SHORT).show();
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                        }
+                    }, 2000);
+                } else {
+                    Log.e("error", e.getMessage());
+                    Toast.makeText(thisContext, "error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
+//    public void updateProfile(String username, final String newPassword){
+//        final int[] callCount = { 0 };
+//        BmobQuery<User> query = new BmobQuery<>();
+//        query.addWhereEqualTo("username", username);
+//        query.findObjects(new FindListener<User>() {
+//            @Override
+//            public void done(List<User> users, BmobException e) {
+//                if(e == null){
+//                    System.out.println("EditProfile: query success");
+//                    saveProfile(users.get(0),newPassword);
+//                }else if(callCount[0] < 5){
+//                    Log.i("bmob","failed："+e.getMessage()+","+e.getErrorCode());
+//                    saveProfile(users.get(0),newPassword);
+//                    callCount[0] ++;
+//                }
+//            }
+//        });
+//    }
+//
+//    public void saveProfile(final BmobUser user, final String newPassword){
+//        final int[] callCount = { 0 };
+//        user.setPassword(newPassword);
+//        user.update(user.getObjectId(), new UpdateListener() {
+//            @Override
+//            public void done(BmobException e) {
+//                if(e == null){
+//                    Toast.makeText(thisContext, "Update success!"
+//                            +" We are going to main page after 3 seconds", Toast.LENGTH_SHORT).show();
+//                    new Thread(new SleepThread()).start();
+//                    Intent intent = new Intent(EditProfileActivity.this, MainActivity.class);
+//                    startActivity(intent);
+//                }else if(callCount[0] < 5){
+//                    saveProfile(user, newPassword);
+//                    Toast.makeText(thisContext, "Update failed! Try again", Toast.LENGTH_SHORT).show();
+//                    Log.i("bmob","update failed："+e.getMessage()+","+e.getErrorCode());
+//                    callCount[0] ++;
+//                }
+//            }
+//        });
+//    }
     public boolean isEntered(String str){
         return str == null || str.length() == 0;
     }

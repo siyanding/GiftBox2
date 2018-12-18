@@ -124,24 +124,13 @@
             android:onClick="onClick_SignInEvent"/>
 
         <Button
-            android:id="@+id/login_error"
+            android:id="@+id/register"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignRight="@id/login"
             android:layout_below="@id/login"
             android:background="#00000000"
-            android:text="Forget Password"
-            android:textSize="16sp"
-            android:onClick="onClick_ForgetPassEvent"/>
-
-        <Button
-            android:id="@+id/register"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@id/login"
-            android:layout_below="@id/login"
-            android:background="#00000000"
-            android:gravity="left|center_vertical"
+            android:gravity="center_vertical"
             android:text="Sign Up"
             android:textSize="16sp"
             android:visibility="visible"

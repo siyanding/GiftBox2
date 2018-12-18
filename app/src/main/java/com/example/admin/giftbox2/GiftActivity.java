@@ -93,6 +93,9 @@ public class GiftActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_settings) {
+            Intent intent = new Intent();
+            intent = new Intent(GiftActivity.this, MainActivity.class);
+            startActivity(intent);
             return true;
         }
 
@@ -131,7 +134,7 @@ public class GiftActivity extends AppCompatActivity {
             titleUser.setText(sectionNum == 1 ? "sent to" : "sent by");
             listView.setOnItemClickListener((adapterView, view, position, id) -> {
                 ((GiftActivity)getActivity()).selectedGift = (Gift) listView.getItemAtPosition(position);
-                viewGift();
+                viewGift(sectionNum);
             });
             giftSetUp(sectionNum);
 
@@ -193,9 +196,9 @@ public class GiftActivity extends AppCompatActivity {
             });
         }
 
-        public void viewGift(){
+        public void viewGift(int sectionNum){
             Intent intent;
-            if(((GiftActivity)getActivity()).selectedGift.getStatus()){
+            if(((GiftActivity)getActivity()).selectedGift.getStatus() || sectionNum == 1){
                 //load image
                 intent = new Intent(((GiftActivity)getActivity()).thisContext, ViewGiftActivity.class);
             }else{
@@ -205,6 +208,8 @@ public class GiftActivity extends AppCompatActivity {
             intent.putExtra("imageUrl",((GiftActivity)getActivity()).selectedGift.getBackground());
             intent.putExtra("coordinate",((GiftActivity)getActivity()).selectedGift.getCoordinate());
             intent.putExtra("points",((GiftActivity)getActivity()).selectedGift.getPoints());
+            intent.putExtra("whole",((GiftActivity)getActivity()).selectedGift.getWhole());
+            intent.putExtra("objectId",((GiftActivity)getActivity()).selectedGift.getObjectId());
             System.out.println("imageUrl:"+ ((GiftActivity)getActivity()).selectedGift.getBackground());
             startActivity(intent);
         }

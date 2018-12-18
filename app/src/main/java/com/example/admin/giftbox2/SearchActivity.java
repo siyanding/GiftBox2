@@ -17,6 +17,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 import cn.bmob.v3.BmobQuery;
@@ -176,7 +178,13 @@ public class SearchActivity extends AppCompatActivity {
             public void done(String objectId, BmobException e) {
                 if(e==null){
                     TextView tv = (TextView) findViewById(R.id.ConfirmMessage);
-                    tv.setText(friend+"is your friend now");
+                    tv.setText(friend+" is your friend now. Go back to friends list after 3 seconds");
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            startActivity(new Intent(thisContext, ContactActivity.class));
+                        }
+                    }, 2000);
                 }else if(callCount[0] < 5){
                     AddANewFriend(user,friend);
                     callCount[0]++;
