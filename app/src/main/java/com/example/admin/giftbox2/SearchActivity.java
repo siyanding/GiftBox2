@@ -184,7 +184,7 @@ public class SearchActivity extends AppCompatActivity {
                         public void run() {
                             startActivity(new Intent(thisContext, ContactActivity.class));
                         }
-                    }, 2000);
+                    }, 3000);
                 }else if(callCount[0] < 5){
                     AddANewFriend(user,friend);
                     callCount[0]++;

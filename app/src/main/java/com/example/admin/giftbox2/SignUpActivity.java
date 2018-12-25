@@ -124,14 +124,14 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             public void done(User s, BmobException e) {
                 if(e==null){
-                    Toast.makeText(thisContext, "Thank you for join us, a confirm email will be sent to you. " +
-                            "You will be log in after 2 secs", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(thisContext, "Thank you for join us. " +
+                            "You will be log in after 3 seconds", Toast.LENGTH_SHORT).show();
                     new Timer().schedule(new TimerTask() {
                         @Override
                         public void run() {
                             startActivity(new Intent(thisContext, MainActivity.class));
                         }
-                    }, 2000);
+                    }, 3000);
                 }else if(e.getErrorCode() == 301){
                     Toast.makeText(thisContext, "This email may used by other users or not valid", Toast.LENGTH_SHORT).show();
                 }else if (e.getErrorCode() == 202){

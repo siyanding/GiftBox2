@@ -73,12 +73,14 @@ public class GiftActivity extends AppCompatActivity {
         thisContext = ContextHolder.getContext();
 
         BmobUser currentUser = BmobUser.getCurrentUser();
-        Intent intent = getIntent();
-        username = intent.getStringExtra("username");
-        if (username == ""){
-            username = currentUser.getUsername();
-            System.out.println("currentErin:" + username);
-        }
+        username = currentUser.getUsername();
+//        Intent intent = getIntent();
+//        username = "";
+//        username = intent.getStringExtra("username");
+//        if (username.length() == 0){
+//            username = currentUser.getUsername();
+//            System.out.println("currentErin:" + username);
+//        }
     }
 
 

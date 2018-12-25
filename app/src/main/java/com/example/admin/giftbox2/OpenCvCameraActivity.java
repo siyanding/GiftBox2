@@ -455,7 +455,12 @@ public class OpenCvCameraActivity extends AppCompatActivity  implements CameraBr
                 if(e==null){
                     Intent intent = new Intent(thisContext, ViewGiftActivity.class);
                     intent.putExtra("whole",wholePath);
-                    startActivity(intent);
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            startActivity(intent);
+                        }
+                    }, 3000);
                     Toast.makeText(thisContext, "update success", Toast.LENGTH_SHORT).show();
                 }else{
                     Toast.makeText(thisContext, "update fail", Toast.LENGTH_SHORT).show();

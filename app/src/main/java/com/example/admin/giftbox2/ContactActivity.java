@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -33,6 +34,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.BmobUser;
@@ -63,7 +66,16 @@ public class ContactActivity extends AppCompatActivity {
         thisContext = ContextHolder.getContext();
         FusedLocationProviderClient mFusedLocationClient = LocationServices.getFusedLocationProviderClient(thisContext);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+            Toast.makeText(thisContext, "Location permissions needed, you will be log out after three seconds.", Toast.LENGTH_SHORT).show();
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    BmobUser.logOut();
+                    Intent intent = new Intent(ContactActivity.this, SignInActivity.class);
+                    startActivity(intent);
+                }
+            }, 3000);
+
         }
         for(int i=0; i<5; i++){
             mFusedLocationClient.getLastLocation()
@@ -82,8 +94,7 @@ public class ContactActivity extends AppCompatActivity {
         listView.setOnItemLongClickListener((arg0, arg1, position, arg3) -> {
             personOnClick = (Friend) listView.getItemAtPosition(position);
             listView.setOnCreateContextMenuListener((menu, arg11, arg2) -> {
-                menu.setHeaderTitle("Operations");
-                menu.add(0, 0, 0, "Send Message");
+                menu.add(0, 0, 0, "Send Gift");
                 menu.add(0, 1, 0, "Delete");
             });
             return false;

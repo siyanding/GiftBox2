@@ -98,7 +98,7 @@ public class EditProfileActivity extends AppCompatActivity {
                         public void run() {
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
                         }
-                    }, 2000);
+                    }, 3000);
                 } else {
                     Log.e("error", e.getMessage());
                     Toast.makeText(thisContext, "error:" + e.getMessage(), Toast.LENGTH_SHORT).show();

@@ -411,40 +411,42 @@ public class MainActivity extends AppCompatActivity
     }
 
     public static void getImage(String imagePath) {
-        new Thread() {
-            public void run() {
-                try {
-                    URL url = new URL(imagePath);
+        if (imagePath != null){
+            new Thread() {
+                public void run() {
+                    try {
+                        URL url = new URL(imagePath);
 
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("GET");
-                    conn.setConnectTimeout(5000);
-                    System.out.println("respond code --" + conn.getResponseCode());
-                    if (conn.getResponseCode() == 200) {
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn.setRequestMethod("GET");
+                        conn.setConnectTimeout(5000);
+                        System.out.println("respond code --" + conn.getResponseCode());
+                        if (conn.getResponseCode() == 200) {
 
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-                        InputStream in = conn.getInputStream();
-                        Bitmap bitmap = BitmapFactory.decodeStream(in, null, options);
-                        //use handler send message
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                            InputStream in = conn.getInputStream();
+                            Bitmap bitmap = BitmapFactory.decodeStream(in, null, options);
+                            //use handler send message
+                            Message msg = Message.obtain();
+                            msg.obj = bitmap;//data being sent
+                            msg.what = SUCCESS;//handler can have different actions depends on different message
+                            handler.sendMessage(msg);
+                            in.close();
+                        } else {
+                            Message msg = Message.obtain();
+                            msg.what = ERROR;
+                            handler.sendMessage(msg);
+                        }
+                    } catch (Exception e) {
                         Message msg = Message.obtain();
-                        msg.obj = bitmap;//data being sent
-                        msg.what = SUCCESS;//handler can have different actions depends on different message
+                        msg.what = NETWORK_ERROR;
                         handler.sendMessage(msg);
-                        in.close();
-                    } else {
-                        Message msg = Message.obtain();
-                        msg.what = ERROR;
-                        handler.sendMessage(msg);
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    Message msg = Message.obtain();
-                    msg.what = NETWORK_ERROR;
-                    handler.sendMessage(msg);
-                    e.printStackTrace();
                 }
-            }
-        }.start();
+            }.start();
+        }
     }
 
     //use Handle to update main thread(UI thread)

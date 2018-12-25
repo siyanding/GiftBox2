@@ -66,7 +66,9 @@ public class NavigateActivity extends FragmentActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+        mMap.setMinZoomPreference(15.0f);
+        System.out.println(mMap.getMinZoomLevel());
+        System.out.println(mMap.getMaxZoomLevel());
         // Add a marker in and move the camera
         LatLng target = new LatLng(lat, lon);
 
@@ -77,6 +79,8 @@ public class NavigateActivity extends FragmentActivity implements OnMapReadyCall
         }
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.getUiSettings().setMapToolbarEnabled(true);
+        mMap.getUiSettings().setCompassEnabled(true);
     }
 
     protected void createLocationRequest() {
@@ -117,8 +121,8 @@ public class NavigateActivity extends FragmentActivity implements OnMapReadyCall
                 Double.toString(location.getLatitude()) + "," +
                 Double.toString(location.getLongitude());
         System.out.println("msg:" + msg);
-        if (isWithIn(lon, location.getLongitude(),0.00005) &&
-                isWithIn(lat, location.getLatitude(),0.00005)){
+        if (isWithIn(lon, location.getLongitude(),0.00002) &&
+                isWithIn(lat, location.getLatitude(),0.00002)){
             Intent intent = new Intent(this, OpenCvCameraActivity.class);
             intent.putExtra("imageUrl",imageUrl);
             intent.putExtra("points",points);
